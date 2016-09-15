@@ -1,4 +1,4 @@
-define lamp::vhost::apache (
+define lamp::server::apache::vhost (
   $priority = undef,
   $hosts    = [],
   $path     = undef,
@@ -9,6 +9,9 @@ define lamp::vhost::apache (
   $ssl       = false, /* true automatically sets port (if undef) */
   $ssl_key   = undef,
   $ssl_chain = undef,
+
+  /* TODO consolidate location syntax */
+  $locations = {},
 
   /* custom options passed directly to apache/nginx vhost */
   $custom_options  = {
@@ -23,8 +26,15 @@ define lamp::vhost::apache (
   include lamp::params
 
   if ($engine == 'php') {
-    class { 'apache::mod::proxy': }
-    class { 'apache::mod::proxy_fcgi': }
+    contain apache::mod::proxy
+    contain apache::mod::proxy_fcgi
+  }
+
+  /* used in vhost/apache.erb template */
+  if ('unix:' in $lamp::params::fcgi_listen or 'fcgi:' in $lamp::params::fcgi_listen) {
+    $fcgi_listen = $lamp::params::fcgi_listen
+  } else {
+    $fcgi_listen = "fcgi://${lamp::params::fcgi_listen}"
   }
 
   /* setup apache vhost */
@@ -37,6 +47,9 @@ define lamp::vhost::apache (
       docroot_owner  => $lamp::params::web_user,
       docroot_group  => $lamp::params::web_group,
 
+      /* TODO perhaps just do this as part of template ? */
+      directories    => $locations,
+
       port => $port ? {
         default => $port,
         undef   => $ssl ? {
@@ -48,10 +61,5 @@ define lamp::vhost::apache (
     $custom_options,
     { custom_fragment => template('vhost/apache.erb') }
   ) })
-
-  /* TODO only do once */
-  /* if ($ssl) { */
-  /*   apache::listen ( "${lamp::params::https_port}" ) */
-  /* } */
 
 }

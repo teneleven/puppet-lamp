@@ -1,4 +1,4 @@
-define lamp::vhost::nginx (
+define lamp::server::nginx::vhost (
   $priority = undef,
   $hosts    = [],
   $path     = undef,
@@ -10,6 +10,9 @@ define lamp::vhost::nginx (
   $ssl_key   = undef,
   $ssl_chain = undef,
 
+  /* TODO consolidate location syntax */
+  $locations = {},
+
   /* custom options passed directly to apache/nginx vhost */
   $custom_options  = {},
 
@@ -17,42 +20,16 @@ define lamp::vhost::nginx (
   $custom_fragment = undef
 ) {
 
-  /* OLD PARAMS: */
-  /* $site                = $title, */
-  /* $hosts               = 'test.example.com', */
-  /* $listen_options      = undef, */
-  /* $path                = "${teneleven::params::web_root}/${title}/${teneleven::params::web_suffix}", */
-  /* $serve_php_files     = false, /1* mostly useful for simple php apps *1/ */
-  /* $app                 = undef, /1* proxy all 404'ed requests to this php app *1/ */
-  /* $proxy               = undef, /1* proxy all undefined requests to this uri/upstream *1/ */
-  /* $resolver            = [],    /1* proxy resolver *1/ */
-  /* $fcgi_host           = '127.0.0.1:9000', */
-  /* $fcgi_socket         = undef, */
-  /* $fcgi_app_root       = $teneleven::nginx::app_root, */
-  /* $additional_apps     = {}, /1* additional fcgi definitions *1/ */
-  /* $location_cfg_append = undef, */
-  /* $locations           = {}, */
-  /* $ssl                 = false, */
-  /* $ssl_cert            = undef, */
-  /* $ssl_key             = undef, */
-
   $try_files = any2array($index).map |$file| {
     "/${file}\$is_args\$args"
   }
 
-  $location_cfg = merge({
+  $location_cfg = {
     'try_files' => join(concat(
       ['$uri'],
       $try_files
     ), ' ')
-  }, $location_cfg_append)
-
-  /* TODO include in template */
-  /* if ($fcgi_socket) { */
-  /*   $real_fcgi_host = "unix:///${fcgi_socket}" */
-  /* } else { */
-  /*   $real_fcgi_host = $fcgi_host */
-  /* } */
+  }
 
   create_resources('::nginx::resource::vhost', { "${title}" => merge(
     {
@@ -85,26 +62,14 @@ define lamp::vhost::nginx (
     $custom_options
   ) })
 
-  /* TODO below this line */
-
-  if ($app) {
-    teneleven::nginx::fcgi { "${title}_app":
-      site     => $title,
-      path     => $path,
-      host     => $real_fcgi_host,
-      app      => $app,
-      app_root => $fcgi_app_root,
-    }
-  }
-
-  if ($serve_php_files) {
+  if ($engine == 'php') {
     /* handle *.php files */
-    teneleven::nginx::fcgi { "${title}_php":
+    lamp::server::nginx::fcgi { "${title}_php":
       site     => $title,
       path     => $path,
       location => '~ [^/]\.php(/|$)',
-      host     => $real_fcgi_host,
-      app_root => $fcgi_app_root,
+      host     => $lamp::params::fcgi_listen,
+      app_root => $path,
 
       custom_cfg => {
         'fastcgi_split_path_info' => '^(.*.php)(.*)$',
@@ -117,13 +82,12 @@ define lamp::vhost::nginx (
       custom_raw => 'if (!-f $document_root$fastcgi_script_name) { return 404; }',
     }
   } else {
-    if (!$proxy) {
+    /* if (!$proxy) { */
       /* block access to *.php files */
-      teneleven::nginx::fcgi { "${title}_php":
+      lamp::server::nginx::fcgi { "${title}_php":
         site     => $title,
         path     => $path,
-        host     => $real_fcgi_host,
-        app_root => $fcgi_app_root,
+        app_root => $path,
         priority => 600,
         location => '~ [^/]\.php(/|$)',
 
@@ -133,10 +97,9 @@ define lamp::vhost::nginx (
           'log_not_found' => 'off',
         }
       }
-    }
+    /* } */
   }
 
   create_resources('nginx::resource::location', $locations, {})
-  create_resources('teneleven::nginx::fcgi',    $additional_apps, {})
 
 }

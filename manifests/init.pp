@@ -9,7 +9,7 @@ class lamp inherits lamp::params {
       $server = $lamp::params::default_vhost_server
     }
 
-    create_resources("lamp::vhost::${server}", merge(
+    create_resources("lamp::server::${server}::vhost", merge(
       { engine => $lamp::params::default_vhost_engine },
       $vhost
     ))
