@@ -1,0 +1,9 @@
+<%- if @engine == 'php' -%>
+    <FilesMatch \.php$>
+        SetHandler proxy:fcgi://127.0.0.1:9000
+    </FilesMatch>
+<%- end -%>
+
+<%- if @custom_fragment -%>
+    <%= @custom_fragment %>
+<%- end -%>
