@@ -16,36 +16,44 @@ define lamp::server::apache::vhost (
   /* TODO consolidate location syntax */
   $locations = {},
 
+  $override = ['All'],
+  $options  = ['Indexes', 'FollowSymLinks', 'MultiViews'],
+
   /* custom options passed directly to apache/nginx vhost */
-  $custom_options = {
-    override => ['All'],
-    options  => ['Indexes', 'FollowSymLinks', 'MultiViews'],
-  },
+  $custom_options = {},
 
   /* raw custom vhost fragment */
   $custom_fragment = undef
 ) {
 
+  class { ::apache:
+    manage_user   => false,
+    manage_group  => false,
+    default_vhost => false
+  }
+
   include lamp::params
+
+  contain apache::mod::rewrite
 
   if ($engine == 'php') {
     contain apache::mod::proxy
     contain apache::mod::proxy_fcgi
 
-    $engine_match = '\\.php$'
+    $engine_match = '\\.php(/.*)?$'
   } else {
     $engine_match = undef
   }
 
   /* expand listen URL for apache-specific syntax */
   if ('unix:' in $lamp::params::fcgi_listen or 'fcgi:' in $lamp::params::fcgi_listen) {
-    $engine_listen = $lamp::params::fcgi_listen
+    $engine_listen = "${lamp::params::fcgi_listen}"
   } else {
     $engine_listen = "fcgi://${lamp::params::fcgi_listen}"
   }
 
   /* setup apache vhost */
-  create_resources('apache::vhost', { "${title}" => merge(
+  create_resources('::apache::vhost', { "${title}" => merge(
     {
       servername     => any2array($hosts)[0],
       serveraliases  => any2array($hosts),
@@ -54,8 +62,17 @@ define lamp::server::apache::vhost (
       docroot_owner  => $lamp::params::web_user,
       docroot_group  => $lamp::params::web_group,
 
-      /* TODO perhaps just do this as part of template ? */
-      directories    => $locations,
+      directories    => merge(
+        /* default apache directory */
+        {
+          provider       => 'directory',
+          path           => $path,
+          options        => $options,
+          allow_override => $override,
+          directoryindex => join(any2array($index), ', '),
+        },
+        $locations
+      ),
 
       port => $port ? {
         default => $port,
@@ -66,7 +83,7 @@ define lamp::server::apache::vhost (
       }
     },
     $custom_options,
-    { custom_fragment => template('vhost/apache.erb') }
+    { custom_fragment => template('lamp/vhost/apache.erb') }
   ) })
 
 }

@@ -41,7 +41,7 @@ class lamp::php (
   if (is_hash($extensions)) {
     create_resources('::php::extension', { $extensions => {} })
   } else {
-    php::extension { $extensions: }
+    ::php::extension { $extensions: }
   }
 
 }

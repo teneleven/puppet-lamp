@@ -7,7 +7,10 @@ define lamp::server::nginx::fcgi (
   $host = '127.0.0.1:9000',
 
   /* fcgi app root in the fcgi container (e.g. /var/www or /app) */
-  $app_root = $teneleven::params::app_root,
+  $app_root = undef,
+
+  /* forward all requests to proxy */
+  $proxy    = undef,
 
   $app      = undef,
   $location = undef,
@@ -20,6 +23,7 @@ define lamp::server::nginx::fcgi (
     default => any2array($app),
     undef   => ['$fastcgi_script_name']
   }
+
 
   $apps.each |$app| {
     ::nginx::resource::location { "${title}_${app}":

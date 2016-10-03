@@ -17,4 +17,4 @@ class lamp::params (
 
   /* enable dev mode? */
   $dev       = false
-)
+) {}

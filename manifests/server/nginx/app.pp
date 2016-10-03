@@ -1,29 +1,49 @@
 define lamp::server::nginx::app (
+  $site   = undef,
+
+  $engine = undef,
   $match  = undef,
-  $listen = undef,
-  $site   = undef
+  $path   = undef,
+
+  $script = undef, /* script to forward all requests to */
+  $listen = undef  /* fcgi listen address */
 ) {
 
-  ::nginx::resource::location { "${title}":
-    ensure          => present,
-    vhost           => $site,
+  if ($engine == 'php') {
+    $custom_cfg = {
+      'fastcgi_split_path_info' => '^(.*.php)(.*)$',
+      /* fixes nginx path_info bug: https://forum.nginx.org/read.php?2,238825,238860 */
+      'fastcgi_param PATH_INFO' => '$path_info',
+      'set $path_info' => '$fastcgi_path_info',
+    }
 
-    /* TODO necessary ? */
-    /* www_root        => $path, */
-    /* priority        => $priority, */
+    /* don't allow access if file doesn't exist */
+    $custom_raw = 'if (!-f $document_root$fastcgi_script_name) { return 404; }'
 
-    location        => "~ ^/${match}",
-    fastcgi         => $listen,
+    $app_root   = '/$document_root'
+  } else {
+    $custom_cfg = undef
+    $custom_raw = undef
+    $app_root   = undef
+  }
+
+  lamp::server::nginx::fcgi { "${title}":
+    /* ensure          => present, */
+    site            => $site,
+    path            => $path,
+    location        => "~ ${match}",
+    host            => $listen,
+    proxy           => $proxy,
+    app             => $script,
+    app_root        => $app_root,
 
     /* TODO can we do this automatically ? */
     /* fastcgi_param   => { */
     /*   'SCRIPT_FILENAME' => "${app_root}/${app}" */
     /* }, */
 
-    location_cfg_prepend => {
-      fastcgi_buffers => '16 16k',
-      fastcgi_buffer_size => '32k'
-    }
+    custom_cfg => $custom_cfg,
+    custom_raw => $custom_raw
   }
 
 }
