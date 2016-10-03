@@ -4,8 +4,6 @@ class lamp::params (
   $web_uid   = 33,
   $web_gid   = 33,
 
-  $app_root  = '/var/www', /* TODO unused ? */
-
   $http_port  = 80,
   $https_port = 443,
 
