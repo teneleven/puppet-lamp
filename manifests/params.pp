@@ -1,6 +1,9 @@
 class lamp::params (
   $web_user  = 'www-data',
   $web_group = 'www-data',
+  $web_uid   = 33,
+  $web_gid   = 33,
+
   $app_root  = '/var/www', /* TODO unused ? */
 
   $http_port  = 80,
@@ -14,5 +17,4 @@ class lamp::params (
 
   /* enable dev mode? */
   $dev       = false
-) {
-}
+)

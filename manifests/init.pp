@@ -2,6 +2,17 @@ class lamp inherits lamp::params {
 
   $config = hiera_hash('lamp', {})
 
+  /* ensure web user/group are properly setup */
+  ensure_resource('group', $web_group, {
+    ensure => present,
+    gid    => $web_gid
+  })
+  ensure_resource('user', $web_user, {
+    ensure => present,
+    gid    => $web_gid,
+    uid    => $web_uid
+  })
+
   $config['vhosts'].each |$name, $vhost| {
     if ($vhost['server']) {
       $server = $vhost['server']
