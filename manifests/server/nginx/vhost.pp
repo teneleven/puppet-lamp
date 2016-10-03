@@ -1,4 +1,6 @@
 define lamp::server::nginx::vhost (
+  $site     = $title, /* used as nginx identifier */
+
   $priority = undef,
   $hosts    = [],
   $path     = undef,
@@ -9,6 +11,9 @@ define lamp::server::nginx::vhost (
   $ssl       = false, /* true automatically sets port (if undef) */
   $ssl_key   = undef,
   $ssl_chain = undef,
+
+  /* hash with keys: match => regex, listen => FCGI addr */
+  $apps = {},
 
   /* TODO consolidate location syntax */
   $locations = {},
@@ -65,7 +70,7 @@ define lamp::server::nginx::vhost (
   if ($engine == 'php') {
     /* handle *.php files */
     lamp::server::nginx::fcgi { "${title}_php":
-      site     => $title,
+      site     => $site,
       path     => $path,
       location => '~ [^/]\.php(/|$)',
       host     => $lamp::params::fcgi_listen,
@@ -85,7 +90,7 @@ define lamp::server::nginx::vhost (
     /* if (!$proxy) { */
       /* block access to *.php files */
       lamp::server::nginx::fcgi { "${title}_php":
-        site     => $title,
+        site     => $site,
         path     => $path,
         app_root => $path,
         priority => 600,
@@ -101,5 +106,13 @@ define lamp::server::nginx::vhost (
   }
 
   create_resources('nginx::resource::location', $locations, {})
+
+  $apps.each |$key, $app| {
+    lamp::server::nginx::vhost { "${key}":
+      match  => $app['match'],
+      listen => $app['listen'],
+      site   => $site
+    }
+  }
 
 }

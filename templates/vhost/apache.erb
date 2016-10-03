@@ -1,6 +1,12 @@
-<%- if @engine == 'php' -%>
-    <FilesMatch \.php$>
-        SetHandler proxy:<%= @fcgi_listen %>
+<%- if @engine_match and @engine_listen -%>
+    <FilesMatch <%= @engine_match %>>
+        SetHandler proxy:<%= @engine_listen %>
+    </FilesMatch>
+<%- end -%>
+
+<%- Array(@apps).each do |app| -%>
+    <FilesMatch <%= app['match'] %>>
+        SetHandler proxy:<%= app['listen'] %>
     </FilesMatch>
 <%- end -%>
 

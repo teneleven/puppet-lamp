@@ -10,11 +10,14 @@ define lamp::server::apache::vhost (
   $ssl_key   = undef,
   $ssl_chain = undef,
 
+  /* hash with keys: match => regex, listen => FCGI addr */
+  $apps = {},
+
   /* TODO consolidate location syntax */
   $locations = {},
 
   /* custom options passed directly to apache/nginx vhost */
-  $custom_options  = {
+  $custom_options = {
     override => ['All'],
     options  => ['Indexes', 'FollowSymLinks', 'MultiViews'],
   },
@@ -28,13 +31,17 @@ define lamp::server::apache::vhost (
   if ($engine == 'php') {
     contain apache::mod::proxy
     contain apache::mod::proxy_fcgi
+
+    $engine_match = '\\.php$'
+  } else {
+    $engine_match = undef
   }
 
-  /* used in vhost/apache.erb template */
+  /* expand listen URL for apache-specific syntax */
   if ('unix:' in $lamp::params::fcgi_listen or 'fcgi:' in $lamp::params::fcgi_listen) {
-    $fcgi_listen = $lamp::params::fcgi_listen
+    $engine_listen = $lamp::params::fcgi_listen
   } else {
-    $fcgi_listen = "fcgi://${lamp::params::fcgi_listen}"
+    $engine_listen = "fcgi://${lamp::params::fcgi_listen}"
   }
 
   /* setup apache vhost */
