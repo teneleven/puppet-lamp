@@ -26,13 +26,9 @@ define lamp::server::apache::vhost (
   $custom_fragment = undef
 ) {
 
-  class { ::apache:
-    manage_user   => false,
-    manage_group  => false,
-    default_vhost => false
-  }
-
   include lamp::params
+
+  contain lamp::server::apache
 
   contain apache::mod::rewrite
 

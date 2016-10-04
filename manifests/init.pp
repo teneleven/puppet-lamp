@@ -22,6 +22,8 @@ class lamp (
       $server = $lamp::params::default_vhost_server
     }
 
+    contain "lamp::server::${server}"
+
     create_resources("lamp::server::${server}::vhost", { $name => merge(
       { engine => $lamp::params::default_vhost_engine },
       delete($vhost, 'server')

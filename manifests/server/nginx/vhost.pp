@@ -24,8 +24,8 @@ define lamp::server::nginx::vhost (
   /* raw custom vhost fragment */
   $custom_fragment = undef
 ) {
-  
-  contain ::nginx
+
+  contain lamp::server::nginx
 
   $try_files = any2array($index).map |$file| {
     "/${file}\$is_args\$args"
