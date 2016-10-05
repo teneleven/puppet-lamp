@@ -38,6 +38,10 @@ class lamp::php (
     }
   }
 
+  if ($dev) {
+    ::php::extension { 'xdebug': }
+  }
+
   if (is_hash($extensions)) {
     create_resources('::php::extension', { $extensions => {} })
   } else {
