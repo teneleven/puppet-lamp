@@ -12,6 +12,10 @@ define lamp::server::nginx::vhost (
   $ssl_key  = undef,
   $ssl_cert = undef,
 
+  /* proxy all requests to this proxy */
+  $proxy       = undef,
+  $proxy_match = undef,
+
   /* hash with keys: match => regex, listen => FCGI addr */
   $apps = {},
 
@@ -38,6 +42,20 @@ define lamp::server::nginx::vhost (
     ), ' ')
   }
 
+  if ($proxy) {
+    ::nginx::resource::location { "${title}_proxy":
+      location => $proxy_match ? {
+        undef   => '/',
+        default => $proxy_match,
+      },
+      proxy            => $proxy,
+      proxy_set_header => ['Host $host', 'X-Forwarded-For $remote_addr'],
+      vhost            => $title,
+    }
+  } else {
+    $proxy_location = undef
+  }
+
   create_resources('::nginx::resource::vhost', { "${title}" => merge(
     {
       ensure              => present,
@@ -49,14 +67,6 @@ define lamp::server::nginx::vhost (
       ssl_cert            => $ssl_cert,
       ssl_key             => $ssl_key,
       raw_append          => $custom_fragment,
-
-      /* TODO proxy */
-      /* proxy               => $proxy, */
-      /* proxy_set_header    => $proxy ? { */
-      /*   undef   => [], */
-      /*   default => ['Host $host', 'X-Forwarded-For $remote_addr'] */
-      /* }, */
-      /* resolver            => $resolver, */
 
       listen_port => $port ? {
         default => $port,
@@ -80,7 +90,7 @@ define lamp::server::nginx::vhost (
       /* app_root => $path */
     }
   } else {
-    /* if (!$proxy) { */
+    if (!$proxy) {
       /* block access to *.php files */
       lamp::server::nginx::fcgi { "${title}_php":
         site     => $site,
@@ -95,7 +105,7 @@ define lamp::server::nginx::vhost (
           'log_not_found' => 'off',
         }
       }
-    /* } */
+    }
   }
 
   create_resources('nginx::resource::location', $locations, {})

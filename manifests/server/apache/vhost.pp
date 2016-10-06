@@ -10,6 +10,10 @@ define lamp::server::apache::vhost (
   $ssl_key  = undef,
   $ssl_cert = undef,
 
+  /* proxy all requests to this proxy */
+  $proxy       = undef,
+  $proxy_match = undef,
+
   /* hash with keys: match => regex, listen => FCGI addr */
   $apps = {},
 
@@ -31,6 +35,20 @@ define lamp::server::apache::vhost (
   contain lamp::server::apache
 
   contain apache::mod::rewrite
+
+  if ($proxy) {
+    contain apache::mod::proxy
+
+    $proxy_pass = {
+      url  => $proxy,
+      path => $proxy_match ? {
+        undef   => "/",
+        default => $proxy_match,
+      },
+    }
+  } else {
+    $proxy_pass = undef
+  }
 
   if ($engine == 'php') {
     contain apache::mod::proxy
@@ -77,6 +95,8 @@ define lamp::server::apache::vhost (
           true    => $lamp::params::https_port
         }
       },
+
+      proxy_pass => $proxy_pass,
 
       ssl      => $ssl,
       ssl_key  => $ssl_key,
