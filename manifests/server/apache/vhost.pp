@@ -6,9 +6,9 @@ define lamp::server::apache::vhost (
   $port     = undef,
   $engine   = undef,
 
-  $ssl       = false, /* true automatically sets port (if undef) */
-  $ssl_key   = undef,
-  $ssl_chain = undef,
+  $ssl      = false, /* true automatically sets port (if undef) */
+  $ssl_key  = undef,
+  $ssl_cert = undef,
 
   /* hash with keys: match => regex, listen => FCGI addr */
   $apps = {},
@@ -76,7 +76,11 @@ define lamp::server::apache::vhost (
           default => $lamp::params::http_port,
           true    => $lamp::params::https_port
         }
-      }
+      },
+
+      ssl      => $ssl,
+      ssl_key  => $ssl_key,
+      ssl_cert => $ssl_cert,
     },
     $custom_options,
     { custom_fragment => template('lamp/vhost/apache.erb') }

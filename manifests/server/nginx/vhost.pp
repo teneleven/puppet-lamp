@@ -8,9 +8,9 @@ define lamp::server::nginx::vhost (
   $port     = undef,
   $engine   = undef,
 
-  $ssl       = false, /* true automatically sets port (if undef) */
-  $ssl_key   = undef,
-  $ssl_chain = undef,
+  $ssl      = false, /* true automatically sets port (if undef) */
+  $ssl_key  = undef,
+  $ssl_cert = undef,
 
   /* hash with keys: match => regex, listen => FCGI addr */
   $apps = {},
