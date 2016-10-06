@@ -11,7 +11,7 @@ define lamp::server::nginx::app (
 
   if ($engine == 'php') {
     $custom_cfg = {
-      'fastcgi_split_path_info' => '^(.*.php)(.*)$',
+      'fastcgi_split_path_info' => '^(.*\.php)(.*)$',
       /* fixes nginx path_info bug: https://forum.nginx.org/read.php?2,238825,238860 */
       'fastcgi_param PATH_INFO' => '$path_info',
       'set $path_info' => '$fastcgi_path_info',
