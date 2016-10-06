@@ -1,20 +1,10 @@
 define lamp::server::nginx::vhost (
-  $site     = $title, /* used as nginx identifier */
+  $site   = $title, /* used as nginx identifier */
+  $path   = undef,
+  $engine = undef,
 
-  $priority = undef,
-  $hosts    = ['default'],
-  $path     = undef,
-  $index    = ['index.html', 'index.htm', 'index.php'],
-  $port     = undef,
-  $engine   = undef,
-
-  $ssl      = false, /* true automatically sets port (if undef) */
-  $ssl_key  = undef,
-  $ssl_cert = undef,
-
-  /* proxy all requests to this proxy */
-  $proxy       = undef,
-  $proxy_match = undef,
+  /* nginx options */
+  $options = {},
 
   /* hash with keys: match => regex, listen => FCGI addr */
   $apps = {},
@@ -22,25 +12,14 @@ define lamp::server::nginx::vhost (
   /* TODO consolidate location syntax */
   $locations = {},
 
-  /* custom options passed directly to apache/nginx vhost */
-  $custom_options  = {},
-
-  /* raw custom vhost fragment */
-  $custom_fragment = undef
+  /* proxy all requests to this url */
+  $proxy       = undef,
+  $proxy_match = undef,
 ) {
 
   contain lamp::server::nginx
 
-  $try_files = any2array($index).map |$file| {
-    "/${file}\$is_args\$args"
-  }
-
-  $location_cfg = {
-    'try_files' => join(concat(
-      ['$uri'],
-      $try_files
-    ), ' ')
-  }
+  create_resources('::nginx::resource::vhost', { "${title}" => $options })
 
   if ($proxy) {
     ::nginx::resource::location { "${title}_proxy":
@@ -50,34 +29,11 @@ define lamp::server::nginx::vhost (
       },
       proxy            => $proxy,
       proxy_set_header => ['Host $host', 'X-Forwarded-For $remote_addr'],
-      vhost            => $title,
+      vhost            => $site,
     }
   } else {
     $proxy_location = undef
   }
-
-  create_resources('::nginx::resource::vhost', { "${title}" => merge(
-    {
-      ensure              => present,
-      index_files         => any2array($index),
-      server_name         => any2array($hosts),
-      www_root            => $path,
-      location_cfg_append => $location_cfg,
-      ssl                 => $ssl,
-      ssl_cert            => $ssl_cert,
-      ssl_key             => $ssl_key,
-      raw_append          => $custom_fragment,
-
-      listen_port => $port ? {
-        default => $port,
-        undef   => $ssl ? {
-          default => $lamp::params::http_port,
-          true    => $lamp::params::https_port
-        }
-      }
-    },
-    $custom_options
-  ) })
 
   if ($engine == 'php') {
     /* handle *.php files */

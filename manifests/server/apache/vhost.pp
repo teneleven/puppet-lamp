@@ -1,18 +1,10 @@
 define lamp::server::apache::vhost (
-  $priority = undef,
-  $hosts    = [],
-  $path     = undef,
-  $index    = ['index.html', 'index.htm', 'index.php'],
-  $port     = undef,
-  $engine   = undef,
+  $site   = $title, /* used as nginx identifier */
+  $path   = undef,
+  $engine = undef,
 
-  $ssl      = false, /* true automatically sets port (if undef) */
-  $ssl_key  = undef,
-  $ssl_cert = undef,
-
-  /* proxy all requests to this proxy */
-  $proxy       = undef,
-  $proxy_match = undef,
+  /* nginx options */
+  $options = {},
 
   /* hash with keys: match => regex, listen => FCGI addr */
   $apps = {},
@@ -20,14 +12,9 @@ define lamp::server::apache::vhost (
   /* TODO consolidate location syntax */
   $locations = {},
 
-  $override = ['All'],
-  $options  = ['Indexes', 'FollowSymLinks', 'MultiViews'],
-
-  /* custom options passed directly to apache/nginx vhost */
-  $custom_options = {},
-
-  /* raw custom vhost fragment */
-  $custom_fragment = undef
+  /* proxy all requests to this url */
+  $proxy       = undef,
+  $proxy_match = undef,
 ) {
 
   include lamp::params
@@ -68,42 +55,11 @@ define lamp::server::apache::vhost (
 
   /* setup apache vhost */
   create_resources('::apache::vhost', { "${title}" => merge(
+    $options,
     {
-      servername     => any2array($hosts)[0],
-      serveraliases  => any2array($hosts),
-      docroot        => $path,
-      directoryindex => join(any2array($index), ', '),
-      docroot_owner  => $lamp::params::web_user,
-      docroot_group  => $lamp::params::web_group,
-
-      directories    => merge(
-        /* default apache directory */
-        {
-          provider       => 'directory',
-          path           => $path,
-          options        => $options,
-          allow_override => $override,
-          directoryindex => join(any2array($index), ', '),
-        },
-        $locations
-      ),
-
-      port => $port ? {
-        default => $port,
-        undef   => $ssl ? {
-          default => $lamp::params::http_port,
-          true    => $lamp::params::https_port
-        }
-      },
-
       proxy_pass => $proxy_pass,
-
-      ssl      => $ssl,
-      ssl_key  => $ssl_key,
-      ssl_cert => $ssl_cert,
-    },
-    $custom_options,
-    { custom_fragment => template('lamp/vhost/apache.erb') }
+      custom_fragment => template('lamp/vhost/apache.erb')
+    }
   ) })
 
 }

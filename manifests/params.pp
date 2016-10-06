@@ -14,5 +14,12 @@ class lamp::params (
   $fcgi_listen = '127.0.0.1:9000',
 
   /* enable dev mode? */
-  $dev       = false
+  $dev       = false,
+
+  /* default apache directory options */
+  $default_apache_directory = {
+    provider       => 'directory',
+    options        => ['Indexes', 'FollowSymLinks', 'MultiViews'],
+    allow_override => ['All'],
+  },
 ) {}
