@@ -1,7 +1,6 @@
 define lamp::server::nginx::fcgi (
   $site = undef, /* vhost */
-
-  $path = "${teneleven::params::web_root}/${title}/${teneleven::params::web_suffix}",
+  $path = undef, /* document root */
 
   /* fcgi socket or HOST:PORT */
   $host = '127.0.0.1:9000',
