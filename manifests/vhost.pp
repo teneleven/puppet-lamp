@@ -1,5 +1,5 @@
 define lamp::vhost (
-  $server   = undef, /* one of lamp::server::*::vhost servers */
+  $server   = undef, /* one of lamp::vhost::* servers */
   $priority = undef,
   $hosts    = ['default'],
   $path     = undef,
@@ -15,10 +15,6 @@ define lamp::vhost (
   $proxy       = undef,
   $proxy_match = undef,
 
-  /* hash with keys: match => regex, listen => FCGI addr */
-  $apps = {},
-
-  /* TODO consolidate location syntax */
   $locations = {},
 
   /* custom options passed directly to apache/nginx vhost */
@@ -42,10 +38,9 @@ define lamp::vhost (
       ), ' ')
     }
 
-    create_resources('lamp::server::nginx::vhost', { "${title}" => {
+    create_resources('lamp::vhost::nginx', { "${title}" => {
       path        => $path,
       engine      => $engine,
-      apps        => $apps,
       locations   => $locations,
       proxy       => $proxy,
       proxy_match => $proxy_match,
@@ -70,10 +65,9 @@ define lamp::vhost (
       }, $custom_options)
     }})
   } elsif ($server == 'apache') {
-    create_resources('lamp::server::apache::vhost', { "${title}" => {
+    create_resources('lamp::vhost::apache', { "${title}" => {
       path        => $path,
       engine      => $engine,
-      apps        => $apps,
       locations   => $locations,
       proxy       => $proxy,
       proxy_match => $proxy_match,
@@ -85,14 +79,13 @@ define lamp::vhost (
         docroot_owner  => $lamp::params::web_user,
         docroot_group  => $lamp::params::web_group,
 
-        directories    => merge(
+        directories    => [
           /* default apache directory */
           merge($lamp::params::default_apache_directory, {
             path           => $path,
             directoryindex => join(any2array($index), ', '),
           }),
-          $locations
-        ),
+        ],
 
         port => $port ? {
           default => $port,

@@ -1,13 +1,10 @@
 <%- if @engine_match and @engine_listen -%>
-    ProxyPassMatch "<%= @engine_match %>" "<%= @engine_listen %><%= @path %>"
+    ProxyPassMatch "<%= @engine_match %>" "<%= @engine_listen %>"
 <%- end -%>
 
-<%- @apps.each do |name,app| -%>
-    <%- if app['listen'] -%>
-        ProxyPassMatch "<%= app['match'] %>" "<%= app['listen'] %>"
-    <%- elsif app['script'] -%>
-        ProxyPassMatch "<%= app['match'] %>" "<%= @engine_listen %><%= app['script'] %>"
-    <%- end -%>
+<%- if @proxy and @proxy_match -%>
+    ProxyPass "<%= @proxy_match %>" "<%= @proxy %>"
+    ProxyPassReverse "<%= @proxy_match %>" "<%= @proxy %>"
 <%- end -%>
 
 <%- if @custom_fragment -%>

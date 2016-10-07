@@ -1,4 +1,4 @@
-define lamp::server::nginx::vhost (
+define lamp::vhost::nginx (
   $site   = $title, /* used as nginx identifier */
   $path   = undef,
   $engine = undef,
@@ -6,10 +6,7 @@ define lamp::server::nginx::vhost (
   /* nginx options */
   $options = {},
 
-  /* hash with keys: match => regex, listen => FCGI addr */
-  $apps = {},
-
-  /* TODO consolidate location syntax */
+  /* location options to be passed to lamp::vhost::location */
   $locations = {},
 
   /* proxy all requests to this url */
@@ -37,23 +34,24 @@ define lamp::server::nginx::vhost (
 
   if ($engine == 'php') {
     /* handle *.php files */
-    lamp::server::nginx::app { "${title}_php":
-      site     => $site,
-      engine   => 'php',
-      path     => $path,
-      match    => '[^/]\.php(/|$)',
-      listen   => $lamp::params::fcgi_listen
-      /* app_root => $path */
+    lamp::vhost::location { "${title}_php":
+      vhost  => $site,
+      server => 'nginx',
+      engine => 'php',
+      path   => $path,
+      match  => '[^/]\.php(/|$)',
+      listen => $lamp::params::fcgi_listen,
+      /* app_root => $path, */
     }
   } else {
     if (!$proxy) {
       /* block access to *.php files */
-      lamp::server::nginx::fcgi { "${title}_php":
-        site     => $site,
+      lamp::vhost::location { "${title}_php":
+        vhost    => $site,
+        server   => 'nginx',
         path     => $path,
-        app_root => $path,
         priority => 600,
-        location => '[^/]\.php(/|$)',
+        match    => '[^/]\.php(/|$)',
 
         custom_cfg => {
           'deny' => 'all',
@@ -64,13 +62,18 @@ define lamp::server::nginx::vhost (
     }
   }
 
-  create_resources('nginx::resource::location', $locations, {})
-
-  $apps.each |$key, $app| {
-    create_resources('lamp::server::nginx::app', { "${key}" => merge(
-      { 'site' => $site },
-      $app
+  $locations.each |$key, $location| {
+    create_resources('lamp::vhost::location', { "${key}" => merge(
+      { 'vhost' => $site, 'server' => 'nginx', 'path' => $path },
+      $location
     )})
   }
+
+  /* $apps.each |$key, $app| { */
+  /*   create_resources('lamp::server::nginx::app', { "${key}" => merge( */
+  /*     { 'site' => $site }, */
+  /*     $app */
+  /*   )}) */
+  /* } */
 
 }
