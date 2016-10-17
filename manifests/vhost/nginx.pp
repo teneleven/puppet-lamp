@@ -34,9 +34,8 @@ define lamp::vhost::nginx (
 
   if ($engine == 'php') {
     /* handle *.php files */
-    lamp::vhost::location { "${title}_php":
+    lamp::vhost::location::nginx { "${title}_php":
       vhost  => $site,
-      server => 'nginx',
       engine => 'php',
       path   => $path,
       match  => '[^/]\.php(/|$)',
@@ -46,7 +45,7 @@ define lamp::vhost::nginx (
   } else {
     if (!$proxy) {
       /* block access to *.php files */
-      lamp::vhost::location { "${title}_php":
+      lamp::vhost::location::nginx { "${title}_php":
         vhost    => $site,
         server   => 'nginx',
         path     => $path,
@@ -63,8 +62,8 @@ define lamp::vhost::nginx (
   }
 
   $locations.each |$key, $location| {
-    create_resources('lamp::vhost::location', { "${key}" => merge(
-      { 'vhost' => $site, 'server' => 'nginx', 'path' => $path },
+    create_resources('lamp::vhost::location::Nginx', { "${key}" => merge(
+      { 'vhost' => $site, 'path' => $path },
       $location
     )})
   }

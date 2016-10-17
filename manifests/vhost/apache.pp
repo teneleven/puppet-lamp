@@ -58,8 +58,8 @@ define lamp::vhost::apache (
   ) })
 
   $locations.each |$key, $location| {
-    create_resources('lamp::vhost::location', { "${key}" => merge(
-      { 'vhost' => $site, 'server' => 'apache', 'path' => $path },
+    create_resources('lamp::vhost::location::apache', { "${key}" => merge(
+      { 'vhost' => $site, 'path' => $path },
       $location
     )})
   }
