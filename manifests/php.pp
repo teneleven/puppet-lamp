@@ -14,6 +14,9 @@ class lamp::php (
   /* set to version string, i.e. 7.0 or 5.6 */
   $version    = latest,
 
+  /* install composer? */
+  $composer   = false,
+
   /* PHP extensions */
   $extensions = {},
 
@@ -43,7 +46,7 @@ class lamp::php (
   }
 
   if (is_hash($extensions)) {
-    create_resources('::php::extension', { $extensions => {} })
+    create_resources('::php::extension', $extensions)
   } else {
     $extensions.each |$extension| {
       if (is_hash($extension)) {
