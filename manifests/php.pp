@@ -41,6 +41,10 @@ class lamp::php (
     }
   }
 
+  if ($composer) {
+    contain ::php::composer
+  }
+
   if ($dev) {
     ::php::extension { 'xdebug': }
   }
