@@ -1,6 +1,14 @@
 require 'spec_helper'
 
 describe 'lamp::vhost' do
+  let(:facts) {
+    {
+      :osfamily               => 'Debian',
+      :operatingsystem        => 'Ubuntu',
+      :operatingsystemrelease => '16.04'
+    }
+  }
+
   context 'nginx' do
     let(:title) { 'nginx' }
     let(:params) {
@@ -17,14 +25,6 @@ describe 'lamp::vhost' do
     let(:title) { 'apache' }
     let(:params) {
       { :server => 'apache', :path => '/var/www', :index => 'index.php', :engine => 'php' }
-    }
-
-    let(:facts) {
-      {
-        :osfamily               => 'Debian',
-        :operatingsystem        => 'Ubuntu',
-        :operatingsystemrelease => '16.04'
-      }
     }
 
     it { is_expected.to contain_lamp__vhost__apache('apache').with(
