@@ -17,7 +17,6 @@ describe 'lamp::vhost::nginx' do
         'index_files' => ['index.php'],
         'server_name' => ['default'],
         'www_root'    => '/var/www',
-        # TODO we should confirm this is being set from our vhost test
         'location_cfg_append' => {
           'try_files' => ['$uri /index.php$is_args$args']
         }
