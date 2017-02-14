@@ -62,7 +62,7 @@ define lamp::vhost::nginx (
   }
 
   $locations.each |$key, $location| {
-    create_resources('lamp::vhost::location::Nginx', { "${key}" => merge(
+    create_resources('lamp::vhost::location::nginx', { "${key}" => merge(
       { 'vhost' => $site, 'path' => $path },
       $location
     )})
