@@ -14,10 +14,6 @@ lamp:
       memory_limit: '512M'
 
   vhosts:
-    www:
-      server: apache
-      priority: 10
-      path: /var/www/html
     host_1:
       server: apache
       hosts: ['host_1.com', 'www.host_1.com']
@@ -38,6 +34,12 @@ node default {
     }
 }
 ```
+
+By default, this will provision Nginx (listening to port 80) and reverse proxy
+hosts "host_1.com" and "www.host_1.com" to Apache (listening to port 81). If
+you just want 1 single web server, just specify a single "server" above. See
+"params.pp" for some helpful defaults you can set, such as the default
+webserver type and default proxy server.
 
 # Installation
 
