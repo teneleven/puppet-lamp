@@ -28,6 +28,26 @@ class lamp (
       [$lamp::params::default_proxy_server],
       $vhost_servers
     ))
+
+    # setup reverse-proxies
+    $vhosts.each |$key,$proxied| {
+      if ('server' in $proxied and $proxied['server']) {
+        $proxied_server = $proxied['server']
+      } else {
+        $proxied_server = $lamp::params::default_vhost_server
+      }
+
+      if ($proxied_server != $lamp::params::default_proxy_server) {
+        $proxied_port = lookup_port($servers, $proxied_server, $lamp::params::http_port)
+
+        create_resources('lamp::vhost', { "reverse-proxy-${key}" => {
+          server => $lamp::params::default_proxy_server,
+          port   => $lamp::params::http_port, # TODO ssl?
+          hosts  => $proxied['hosts'],
+          proxy  => "${lamp::params::default_proxy_host}:${proxied_port}",
+        }})
+      }
+    }
   } else {
     $servers = unique($vhost_servers)
   }
@@ -47,30 +67,6 @@ class lamp (
     } else {
       # TODO ssl port(s)?
       $port = lookup_port($servers, $server, $lamp::params::http_port)
-
-      if ($server == $lamp::params::default_proxy_server) {
-        # setup reverse-proxies
-        # TODO do this out of loop
-        $vhosts.each |$key,$proxied| {
-          if ('server' in $proxied and $proxied['server']) {
-            $proxied_server = $proxied['server']
-          } else {
-            $proxied_server = $lamp::params::default_vhost_server
-          }
-
-          if ($proxied_server != $lamp::params::default_proxy_server) {
-            $proxied_port = lookup_port($servers, $proxied_server, $lamp::params::http_port)
-
-            ensure_resource('lamp::vhost', "${name}-proxy-${proxied_server}", {
-              server => $server,
-              port   => $port,
-              hosts  => $proxied['hosts'],
-              proxy  => "${lamp::params::default_proxy_host}:${proxied_port}",
-              site   => $name,
-            })
-          }
-        }
-      }
     }
 
     create_resources('lamp::vhost', { $name => merge(

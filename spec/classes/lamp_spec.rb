@@ -84,8 +84,9 @@ describe 'lamp' do
     let(:params) {
       {
         :vhosts => {
-          'apache' => { 'hosts' => 'apache', 'path' => '/var/www/apache' },
-          'nginx'  => { 'hosts' => 'proxy',  'path' => '/var/www/nginx', 'server' => 'nginx' }
+          'apache'  => { 'hosts' => 'apache', 'path' => '/var/www/apache' },
+          'apache2' => { 'hosts' => 'apache2', 'path' => '/var/www/apache2' },
+          'nginx'   => { 'hosts' => 'proxy',  'path' => '/var/www/nginx', 'server' => 'nginx' }
         },
       }
     }
@@ -101,6 +102,14 @@ describe 'lamp' do
       'hosts'  => ['apache']
     ) }
 
+    it { is_expected.to contain_lamp__vhost('apache2').with(
+      'engine' => 'php',
+      'server' => 'apache',
+      'path'   => '/var/www/apache2',
+      'port'   => 81,
+      'hosts'  => ['apache2']
+    ) }
+
     it { is_expected.to contain_lamp__vhost('nginx').with(
       'engine' => 'php',
       'server' => 'nginx',
@@ -110,11 +119,18 @@ describe 'lamp' do
     ) }
 
     # reverse proxy back to apache host
-    it { is_expected.to contain_lamp__vhost('nginx-proxy-apache').with(
+    it { is_expected.to contain_lamp__vhost('reverse-proxy-apache').with(
       'server' => 'nginx',
       'port'   => 80,
       'proxy'  => 'http://127.0.0.1:81',
       'hosts'  => ['apache']
+    ) }
+
+    it { is_expected.to contain_lamp__vhost('reverse-proxy-apache2').with(
+      'server' => 'nginx',
+      'port'   => 80,
+      'proxy'  => 'http://127.0.0.1:81',
+      'hosts'  => ['apache2']
     ) }
   end
 
