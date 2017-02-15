@@ -12,7 +12,7 @@ describe 'lamp::vhost' do
   context 'nginx' do
     let(:title) { 'nginx' }
     let(:params) {
-      { :server => 'nginx', :path => '/var/www', :index => 'app.php', :engine => 'php', :hosts => 'test-host' }
+      { :server => 'nginx', :path => '/var/www', :index => ['app.php', 'index.php'], :engine => 'php', :hosts => 'test-host' }
     }
 
     it do
@@ -22,7 +22,7 @@ describe 'lamp::vhost' do
           'engine' => 'php',
         )
         .with_options(/"www_root"=>"\/var\/www"/)
-        .with_options(/"try_files"=>"\$uri \/app.php\$is_args\$args"/)
+        .with_options(/"try_files"=>"\$uri \/app.php\$is_args\$args \/index.php\$is_args\$args"/)
         .with_options(/"server_name"=>\["test-host"\]/)
     end
   end

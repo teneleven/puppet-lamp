@@ -40,12 +40,12 @@ class lamp (
       if ($proxied_server != $lamp::params::default_proxy_server) {
         $proxied_port = lookup_port($servers, $proxied_server, $lamp::params::http_port)
 
-        create_resources('lamp::vhost', { "reverse-proxy-${key}" => {
+        lamp::vhost { "reverse-proxy-${key}":
           server => $lamp::params::default_proxy_server,
           port   => $lamp::params::http_port, # TODO ssl?
           hosts  => $proxied['hosts'],
           proxy  => "${lamp::params::default_proxy_host}:${proxied_port}",
-        }})
+        }
       }
     }
   } else {

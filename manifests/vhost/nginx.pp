@@ -17,19 +17,28 @@ define lamp::vhost::nginx (
   contain lamp::server::nginx
 
   if ($proxy and $path == undef) {
+    # if we only set $proxy and not $path, we need to pass the $proxy to our
+    # nginx vhost below (otherwise it errors since it needs at least $path *or*
+    # $proxy set)
     $proxy_options = { 'proxy' => $proxy, 'proxy_set_header' => $lamp::server::nginx::proxy_headers }
-
-    /* # TODO figure out proxy_location */
-    /* proxy    => $proxy_location, */
-    /* proxy_set_header => $proxy_location ? { */
-    /*   undef   => undef, */
-    /*   default => $proxy_headers, */
-    /* }, */
   } else {
     $proxy_options = {}
   }
 
-  create_resources('::nginx::resource::vhost', { "${title}" => 
+  if ($proxy and empty($proxy_options)) {
+    # create a proxy location under this vhost
+    ::nginx::resource::location { "${title}_proxy":
+      location => $proxy_match ? {
+        undef   => '/',
+        default => $proxy_match,
+      },
+      proxy            => $proxy,
+      proxy_set_header => $lamp::server::nginx::proxy_headers,
+      vhost            => $site,
+    }
+  }
+
+  create_resources('::nginx::resource::vhost', { "${title}" =>
     merge($options, $proxy_options)
   })
 
@@ -68,7 +77,7 @@ define lamp::vhost::nginx (
 
   $locations.each |$key, $location| {
     create_resources('lamp::vhost::location::nginx', { "${key}" => merge(
-      { 'vhost' => $site, 'path' => $path, 'proxy' => $proxy, 'proxy_match' => $proxy_match },
+      { 'vhost' => $site, 'path' => $path },
       $location
     )})
   }

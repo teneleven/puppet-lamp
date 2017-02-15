@@ -134,5 +134,27 @@ describe 'lamp' do
     ) }
   end
 
+  # This tests configuring an nginx vhost with a path & a proxy.
+  context 'nginx-path-with-proxy' do
+    let(:params) {
+      {
+        :vhosts => {
+          'nginx' => { 'hosts' => 'proxy', 'path' => '/var/www', 'server' => 'nginx', 'proxy' => 'http://some-external-website.com', 'proxy_match' => '/external' }
+        },
+      }
+    }
+
+    it { is_expected.to contain_class('lamp::server::nginx') }
+
+    it { is_expected.to contain_lamp__vhost('nginx').with(
+      'engine'      => 'php',
+      'server'      => 'nginx',
+      'path'        => '/var/www',
+      'hosts'       => ['proxy'],
+      'proxy'       => 'http://some-external-website.com',
+      'proxy_match' => '/external',
+    ) }
+  end
+
   # TODO db
 end
