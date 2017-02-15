@@ -79,7 +79,7 @@ define lamp::vhost (
         servername     => any2array($hosts)[0],
         serveraliases  => any2array($hosts),
         docroot        => $path,
-        directoryindex => join(any2array($index), ', '),
+        directoryindex => join(any2array($index), ' '),
         docroot_owner  => $lamp::params::web_user,
         docroot_group  => $lamp::params::web_group,
 
@@ -87,7 +87,7 @@ define lamp::vhost (
           /* default apache directory */
           merge($lamp::params::default_apache_directory, {
             path           => $path,
-            directoryindex => join(any2array($index), ', '),
+            directoryindex => join(any2array($index), ' '),
           }),
         ],
 

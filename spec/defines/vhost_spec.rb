@@ -30,7 +30,7 @@ describe 'lamp::vhost' do
   context 'apache' do
     let(:title) { 'apache' }
     let(:params) {
-      { :server => 'apache', :path => '/var/www', :index => 'app.php', :engine => 'php', :hosts => 'test-host' }
+      { :server => 'apache', :path => '/var/www', :index => ['app.php', 'index.php'], :engine => 'php', :hosts => 'test-host' }
     }
 
     it do
@@ -40,7 +40,7 @@ describe 'lamp::vhost' do
           'engine' => 'php',
         )
         .with_options(/"docroot"=>"\/var\/www"/)
-        .with_options(/"directoryindex"=>"app\.php"/)
+        .with_options(/"directoryindex"=>"app\.php index\.php"/)
         .with_options(/"servername"=>"test-host"/)
     end
   end

@@ -16,7 +16,7 @@ describe 'lamp::vhost::apache' do
         'servername'     => 'default',
         'serveraliases'  => ['default-alias', 'default-alias2'],
         'docroot'        => '/var/www',
-        'directoryindex' => 'index.html, index.php',
+        'directoryindex' => 'index.html index.php',
         'docroot_owner'  => 'www-data',
         'docroot_group'  => 'www-data',
         'override'       => ['All'],
@@ -39,13 +39,12 @@ describe 'lamp::vhost::apache' do
       is_expected.to contain_concat__fragment('defaultvhost-serveralias')
         .with_content(/^\s*ServerAlias default-alias$/)
         .with_content(/^\s*ServerAlias default-alias2$/)
-
       is_expected.to contain_concat__fragment('defaultvhost-docroot')
         .with_content(/^\s*DocumentRoot "\/var\/www"$/)
 
       is_expected.to contain_concat__fragment('defaultvhost-directories')
         .with_content(/^\s*<Directory "\/var\/www">$/)
-        .with_content(/^\s*DirectoryIndex index.html, index.php$/)
+        .with_content(/^\s*DirectoryIndex index.html index.php$/)
         .with_content(/^\s*AllowOverride All$/)
     end
   end
