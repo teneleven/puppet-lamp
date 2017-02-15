@@ -1,5 +1,7 @@
 # puppet-lamp
 
+[![Build Status](https://travis-ci.org/teneleven/puppet-lamp.svg?branch=master)](https://travis-ci.org/teneleven/puppet-lamp)
+
 This module adds the ability to configure LAMP and/or LEMP vhosts with a single unified configuration.
 
 For example (hiera.yaml):
