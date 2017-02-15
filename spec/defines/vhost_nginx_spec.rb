@@ -15,8 +15,52 @@ describe 'lamp::vhost::nginx' do
       { :path => '/var/www', :engine => 'php', :options => {
         'ensure'      => 'present',
         'index_files' => ['index.php'],
-        'server_name' => ['default'],
+        'server_name' => ['default', 'default-alias'],
         'www_root'    => '/var/www',
+        'location_cfg_append' => {
+          'try_files' => ['$uri /index.php$is_args$args']
+        }
+      } }
+    }
+
+    it { is_expected.to contain_class('lamp::server::nginx') }
+    it { is_expected.to contain_nginx__resource__vhost('defaultvhost') }
+
+    # test for nginx conf file contents
+    it do
+      # ensures site is available & enabled
+      is_expected.to contain_concat('/etc/nginx/sites-available/defaultvhost.conf')
+      is_expected.to contain_file('defaultvhost.conf symlink')
+
+      # vhost header content
+      is_expected.to contain_concat__fragment('defaultvhost-header')
+        .with_content(/^\s*listen *\*:80;$/)
+        .with_content(/^\s*index *index.php;$/)
+        .with_content(/^\s*server_name *default default-alias;$/)
+
+      # vhost location resource
+      is_expected.to contain_nginx__resource__location('defaultvhost-default').with(
+        'ensure'   => 'present',
+        'vhost'    => 'defaultvhost',
+        'location' => '/',
+      )
+
+      # vhost location content
+      is_expected.to contain_concat__fragment('defaultvhost-500-6666cd76f96956469e7be39d750cc7d9')
+        .with_content(/^\s*root *\/var\/www;$/)
+        .with_content(/^\s*index *index.php;$/)
+        .with_content(/^\s*try_files \$uri \/index.php\$is_args\$args;$/)
+    end
+  end
+
+  # test nginx conf file for reverse-proxy
+  context 'nginx-proxy' do
+    let(:title) { 'defaultvhost' }
+    let(:params) {
+      { :proxy => 'http://127.0.0.1:81', :options => {
+        'ensure'      => 'present',
+        'index_files' => ['index.php'],
+        'server_name' => ['default'],
         'location_cfg_append' => {
           'try_files' => ['$uri /index.php$is_args$args']
         }
@@ -46,11 +90,11 @@ describe 'lamp::vhost::nginx' do
 
       # vhost location content
       is_expected.to contain_concat__fragment('defaultvhost-500-6666cd76f96956469e7be39d750cc7d9')
-        .with_content(/^\s*root *\/var\/www;$/)
-        .with_content(/^\s*index *index.php;$/)
-        .with_content(/^\s*try_files \$uri \/index.php\$is_args\$args;$/)
+        .with_content(/^\s*proxy_pass *http:\/\/127.0.0.1:81;$/)
+        .with_content(/^\s*proxy_set_header *Host \$host;$/)
+        .with_content(/^\s*proxy_set_header *X-Forwarded-For \$remote_addr;$/)
     end
   end
 
-  # TODO add proxy conf contents test
+  # TODO test path + proxy
 end

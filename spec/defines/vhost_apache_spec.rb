@@ -14,6 +14,7 @@ describe 'lamp::vhost::apache' do
     let(:params) {
       { :path => '/var/www', :engine => 'php', :options => {
         'servername'     => 'default',
+        'serveraliases'  => ['default-alias', 'default-alias2'],
         'docroot'        => '/var/www',
         'directoryindex' => 'index.html, index.php',
         'docroot_owner'  => 'www-data',
@@ -35,6 +36,9 @@ describe 'lamp::vhost::apache' do
 
       is_expected.to contain_concat__fragment('defaultvhost-apache-header')
         .with_content(/^\s*ServerName default$/)
+      is_expected.to contain_concat__fragment('defaultvhost-serveralias')
+        .with_content(/^\s*ServerAlias default-alias$/)
+        .with_content(/^\s*ServerAlias default-alias2$/)
 
       is_expected.to contain_concat__fragment('defaultvhost-docroot')
         .with_content(/^\s*DocumentRoot "\/var\/www"$/)
@@ -45,4 +49,6 @@ describe 'lamp::vhost::apache' do
         .with_content(/^\s*AllowOverride All$/)
     end
   end
+
+  # TODO implement & test reverse-proxying
 end

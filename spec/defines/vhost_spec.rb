@@ -45,5 +45,31 @@ describe 'lamp::vhost' do
     end
   end
 
-  # TODO apache + nginx reverse-proxy
+  context 'nginx-proxy' do
+    let(:title) { 'nginx' }
+    let(:params) {
+      { :server => 'nginx', :proxy => 'http://127.0.0.1:81', :index => 'app.php', :hosts => 'test-host' }
+    }
+
+    it do
+      is_expected.to contain_lamp__vhost__nginx('nginx')
+        .with(
+          'proxy' => 'http://127.0.0.1:81',
+        )
+    end
+  end
+
+  context 'apache-proxy' do
+    let(:title) { 'apache' }
+    let(:params) {
+      { :server => 'apache', :proxy => 'http://127.0.0.1:81', :index => 'app.php', :hosts => 'test-host' }
+    }
+
+    it do
+      is_expected.to contain_lamp__vhost__apache('apache')
+        .with(
+          'proxy' => 'http://127.0.0.1:81',
+        )
+    end
+  end
 end
