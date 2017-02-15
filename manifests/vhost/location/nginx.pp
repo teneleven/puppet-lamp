@@ -4,7 +4,10 @@ define lamp::vhost::location::nginx (
   $engine = undef,
   $index  = undef,
 
-  $proxy  = undef, /* proxy all requests to this proxy */
+  /* proxy requests to this proxy */
+  $proxy  = undef,
+  $proxy_match = undef,
+
   $match  = undef, /* what to match for location directive */
   $script = undef, /* script to forward all requests to */
   $listen = undef, /* fcgi listen address */
@@ -16,6 +19,21 @@ define lamp::vhost::location::nginx (
   /*   undef   => getparam(Lamp::Vhost[$vhost], 'index'), */
   /*   default => $index, */
   /* } */
+
+  if ($proxy and $path) {
+    include lamp::server::nginx
+
+    # need a duplicate location, since we're serving files from path
+    ::nginx::resource::location { "${title}_proxy":
+      location => $proxy_match ? {
+        undef   => '/',
+        default => $proxy_match,
+      },
+      proxy            => $proxy,
+      proxy_set_header => $lamp::server::nginx::proxy_headers,
+      vhost            => $vhost,
+    }
+  }
 
   $real_path = $path ? {
     undef   => getparam(Lamp::Vhost[$vhost], 'path'),
@@ -88,12 +106,6 @@ define lamp::vhost::location::nginx (
         undef     => "~ ^/${script}(/|\$)"
       },
       /* priority        => $priority, */
-
-      proxy    => $proxy,
-      proxy_set_header => $proxy ? {
-        undef   => undef,
-        default => ['Host $host', 'X-Forwarded-For $remote_addr'],
-      },
 
       fastcgi       => $fastcgi,
       fastcgi_param => $fastcgi_param,

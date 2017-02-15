@@ -51,4 +51,6 @@ describe 'lamp::vhost::nginx' do
         .with_content(/^\s*try_files \$uri \/index.php\$is_args\$args;$/)
     end
   end
+
+  # TODO add proxy conf contents test
 end

@@ -1,6 +1,8 @@
 define lamp::vhost (
   $server   = undef, /* one of lamp::vhost::* servers */
   $priority = undef,
+  $site     = $title,
+
   $hosts    = ['default'],
   $path     = undef,
   $index    = ['index.html', 'index.htm', 'index.php'],
@@ -44,6 +46,7 @@ define lamp::vhost (
       locations   => $locations,
       proxy       => $proxy,
       proxy_match => $proxy_match,
+      site        => $site,
       options     => merge({
         ensure              => present,
         index_files         => any2array($index),
@@ -71,6 +74,7 @@ define lamp::vhost (
       locations   => $locations,
       proxy       => $proxy,
       proxy_match => $proxy_match,
+      site        => $site,
       options     => merge({
         servername     => any2array($hosts)[0],
         serveraliases  => any2array($hosts),

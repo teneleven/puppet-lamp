@@ -34,7 +34,7 @@ describe 'lamp' do
     ) }
   end
 
-  context 'vhosts' do
+  context 'default-vhost' do
     let(:params) {
       {
         # defaults from params.pp:
@@ -43,8 +43,29 @@ describe 'lamp' do
         # :default_vhost_engine => 'php',
 
         :vhosts => {
-          'apache' => { 'path' => '/var/www/apache' },
-          'nginx'  => { 'path' => '/var/www/nginx', 'server' => 'nginx' }
+          'test' => { 'path' => '/var/www/test' },
+        },
+      }
+    }
+
+    it { is_expected.to contain_class('lamp::server::apache') }
+
+    it { is_expected.to contain_lamp__vhost('test').with(
+      'engine' => 'php',
+      'server' => 'apache',
+      'path'   => '/var/www/test',
+    ) }
+  end
+
+  # tests default implementation of using multiple vhost servers
+  # this should set the default proxy server to port 80, and reverse
+  # proxy requests to the other server to port 81
+  context 'multiple-vhost-servers' do
+    let(:params) {
+      {
+        :vhosts => {
+          'apache' => { 'hosts' => 'apache', 'path' => '/var/www/apache' },
+          'nginx'  => { 'hosts' => 'proxy',  'path' => '/var/www/nginx', 'server' => 'nginx' }
         },
       }
     }
@@ -56,12 +77,26 @@ describe 'lamp' do
       'engine' => 'php',
       'server' => 'apache',
       'path'   => '/var/www/apache',
+      'port'   => 81,
+      'hosts'  => ['apache']
     ) }
 
     it { is_expected.to contain_lamp__vhost('nginx').with(
       'engine' => 'php',
       'server' => 'nginx',
       'path'   => '/var/www/nginx',
+      'port'   => 80,
+      'hosts'  => ['proxy']
+    ) }
+
+    # reverse proxy back to apache host
+    it { is_expected.to contain_lamp__vhost('nginx-proxy-apache').with(
+      'server' => 'nginx',
+      'port'   => 80,
+      'proxy'  => 'http://127.0.0.1:81',
+      'hosts'  => ['apache']
     ) }
   end
+
+  # TODO db
 end
