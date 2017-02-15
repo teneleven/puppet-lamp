@@ -28,6 +28,7 @@ define lamp::vhost::nginx (
   if ($proxy and empty($proxy_options)) {
     # create a proxy location under this vhost
     ::nginx::resource::location { "${title}_proxy":
+      priority => 499, # needs higher priority or our other locations will match first
       location => $proxy_match ? {
         undef   => '/',
         default => $proxy_match,
