@@ -49,10 +49,30 @@ describe 'lamp' do
     }
 
     it { is_expected.to contain_class('lamp::server::apache') }
+    it { is_expected.not_to contain_class('lamp::server::nginx') }
 
     it { is_expected.to contain_lamp__vhost('test').with(
       'engine' => 'php',
       'server' => 'apache',
+      'path'   => '/var/www/test',
+    ) }
+  end
+
+  context 'nginx-vhost' do
+    let(:params) {
+      {
+        :vhosts => {
+          'test' => { 'path' => '/var/www/test', 'server' => 'nginx' },
+        },
+      }
+    }
+
+    it { is_expected.to contain_class('lamp::server::nginx') }
+    it { is_expected.not_to contain_class('lamp::server::apache') }
+
+    it { is_expected.to contain_lamp__vhost('test').with(
+      'engine' => 'php',
+      'server' => 'nginx',
       'path'   => '/var/www/test',
     ) }
   end
