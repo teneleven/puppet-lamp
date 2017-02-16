@@ -28,15 +28,14 @@ describe 'lamp::nodejs' do
       }
     }
 
-    it { is_expected.to contain_nodejs__npm('/var/www').with(
-      'ensure'  => 'present',
-      'target'  => '/var/www',
-      'package' => '/var/www',
-    ) }
-
-    it { is_expected.to contain_exec('npm_install_/var/www').with(
-      'command' => '/usr/bin/npm install /var/www ',
-      'cwd'     => '/var/www',
-    ) }
+    it do
+      is_expected.to contain_exec('npm_install_/var/www')
+        .with(
+          'command' => '/usr/bin/npm install',
+          'cwd'     => '/var/www',
+          'timeout' => 0,
+        )
+        .with_require(/Package\[npm\]/)
+    end
   end
 end

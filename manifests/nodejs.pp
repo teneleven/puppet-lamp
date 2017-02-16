@@ -19,8 +19,11 @@ class lamp::nodejs (
 ) inherits lamp::params {
 
   class { '::nodejs':
-    repo_url_suffix     => $version,
     manage_package_repo => $manage_package_repo,
+    repo_url_suffix     => $version ? {
+      undef   => $::nodejs::repo_url_suffix,
+      default => $version,
+    },
     npm_package_ensure  => $npm ? {
       true  => 'present',
       false => 'absent',
@@ -41,10 +44,15 @@ class lamp::nodejs (
   } else {
     # not hash - assume a list of install dirs
     $install.each |$path| {
-      nodejs::npm { $path:
-        ensure  => 'present',
-        target  => $path,
-        package => $path,
+      # use manual exec so we don't hit timeout
+      exec { "npm_install_${path}":
+        command => "${::nodejs::npm_path} install",
+        cwd     => $path,
+        require => $::nodejs::npm_package_name ? {
+          false   => Class['nodejs'],
+          default => Package[$::nodejs::npm_package_name],
+        },
+        timeout => 0, # this can take a long time
       }
     }
   }
