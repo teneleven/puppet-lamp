@@ -1,8 +1,7 @@
 install: 
   - 'bundle install'
   - 'gem install librarian-puppet'
-  - 'librarian-puppet install'
-  - 'cp modules/* spec/fixtures/modules/ -R'
+  - 'librarian-puppet install --path=spec/fixtures/modules'
 
 script: 'rake spec'
 
