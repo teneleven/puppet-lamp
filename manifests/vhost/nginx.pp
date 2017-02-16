@@ -2,6 +2,7 @@ define lamp::vhost::nginx (
   $site   = $title, /* used as nginx identifier */
   $path   = undef,
   $engine = undef,
+  $index  = undef,
 
   /* nginx options */
   $options = {},
@@ -16,31 +17,12 @@ define lamp::vhost::nginx (
 
   contain lamp::server::nginx
 
-  if ($proxy and $path == undef) {
-    # if we only set $proxy and not $path, we need to pass the $proxy to our
-    # nginx vhost below (otherwise it errors since it needs at least $path *or*
-    # $proxy set)
-    $proxy_options = { 'proxy' => $proxy, 'proxy_set_header' => $lamp::server::nginx::proxy_headers }
-  } else {
-    $proxy_options = {}
-  }
-
-  if ($proxy and empty($proxy_options)) {
-    # create a proxy location under this vhost
-    ::nginx::resource::location { "${title}_proxy":
-      priority => 499, # needs higher priority or our other locations will match first
-      location => $proxy_match ? {
-        undef   => '/',
-        default => $proxy_match,
-      },
-      proxy            => $proxy,
-      proxy_set_header => $lamp::server::nginx::proxy_headers,
-      vhost            => $site,
-    }
-  }
-
   create_resources('::nginx::resource::vhost', { "${title}" =>
-    merge($options, $proxy_options)
+    merge(
+      $lamp::server::nginx::default_vhost_options,
+      { 'www_root' => $path, 'index_files' => $index },
+      $options
+    )
   })
 
   if ($path) {
@@ -60,20 +42,30 @@ define lamp::vhost::nginx (
       notice("blocking php engine for ${title}")
 
       /* block access to *.php files */
-      lamp::vhost::location::nginx { "${title}_php":
-        vhost    => $site,
-        server   => 'nginx',
-        path     => $path,
-        priority => 600,
-        match    => '[^/]\.php(/|$)',
+      /* lamp::vhost::location::nginx { "${title}_php": */
+      /*   vhost    => $site, */
+      /*   server   => 'nginx', */
+      /*   path     => $path, */
+      /*   priority => 600, */
+      /*   match    => '[^/]\.php(/|$)', */
 
-        custom_cfg => {
-          'deny' => 'all',
-          'access_log' => 'off',
-          'log_not_found' => 'off',
-        }
-      }
+      /*   custom_cfg => { */
+      /*     'deny' => 'all', */
+      /*     'access_log' => 'off', */
+      /*     'log_not_found' => 'off', */
+      /*   } */
+      /* } */
     }
+  }
+
+  # setup default location
+  lamp::vhost::location::nginx { "${title}-default":
+    path           => $path,
+    vhost          => $site,
+    index          => $index,
+    proxy          => $proxy,
+    proxy_match    => $proxy_match,
+    # TODO pass engine here?
   }
 
   $locations.each |$key, $location| {

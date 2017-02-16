@@ -21,8 +21,6 @@ describe 'lamp::vhost' do
           'path'   => '/var/www',
           'engine' => 'php',
         )
-        .with_options(/"www_root"=>"\/var\/www"/)
-        .with_options(/"try_files"=>"\$uri \/app.php\$is_args\$args \/index.php\$is_args\$args"/)
         .with_options(/"server_name"=>\["test-host"\]/)
     end
   end

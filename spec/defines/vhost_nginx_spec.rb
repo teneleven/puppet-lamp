@@ -12,19 +12,63 @@ describe 'lamp::vhost::nginx' do
   context 'default' do
     let(:title) { 'defaultvhost' }
     let(:params) {
-      { :path => '/var/www', :engine => 'php', :options => {
-        'ensure'      => 'present',
-        'index_files' => ['index.php'],
+      { :path => '/var/www', :index => ['index.html', 'index.htm'], :options => {
         'server_name' => ['default', 'default-alias'],
-        'www_root'    => '/var/www',
-        'location_cfg_append' => {
-          'try_files' => ['$uri /index.php$is_args$args']
-        }
       } }
     }
 
     it { is_expected.to contain_class('lamp::server::nginx') }
     it { is_expected.to contain_nginx__resource__vhost('defaultvhost') }
+
+    it { is_expected.to contain_lamp__vhost__location__nginx('defaultvhost-default').with(
+      'path'  => '/var/www',
+      'vhost' => 'defaultvhost',
+      'index' => ['index.html', 'index.htm'],
+    ) }
+
+    # test for nginx conf file contents
+    it do
+      # ensures site is available & enabled
+      is_expected.to contain_concat('/etc/nginx/sites-available/defaultvhost.conf')
+      is_expected.to contain_file('defaultvhost.conf symlink')
+
+      # vhost header content
+      is_expected.to contain_concat__fragment('defaultvhost-header')
+        .with_content(/^\s*listen *\*:80;$/)
+        .with_content(/^\s*index *index.html index.htm;$/)
+        .with_content(/^\s*server_name *default default-alias;$/)
+
+      # vhost location resource
+      is_expected.to contain_nginx__resource__location('defaultvhost-default').with(
+        'ensure'   => 'present',
+        'vhost'    => 'defaultvhost',
+        'location' => '/',
+      )
+
+      # vhost location content
+      is_expected.to contain_concat__fragment('defaultvhost-500-6666cd76f96956469e7be39d750cc7d9')
+        .with_content(/^\s*root *\/var\/www;$/)
+        .with_content(/^\s*index *index.html index.htm;$/)
+        .with_content(/^\s*try_files \$uri \/index.html\$is_args\$args \/index.htm\$is_args\$args;$/)
+    end
+  end
+
+  context 'php engine' do
+    let(:title) { 'defaultvhost' }
+    let(:params) {
+      { :path => '/var/www', :engine => 'php', :index => ['index.php'], :options => {
+        'server_name' => ['default', 'default-alias'],
+      } }
+    }
+
+    it { is_expected.to contain_class('lamp::server::nginx') }
+    it { is_expected.to contain_nginx__resource__vhost('defaultvhost') }
+
+    it { is_expected.to contain_lamp__vhost__location__nginx('defaultvhost-default').with(
+      'path'  => '/var/www',
+      'vhost' => 'defaultvhost',
+      'index' => ['index.php'],
+    ) }
 
     # test for nginx conf file contents
     it do
@@ -57,18 +101,16 @@ describe 'lamp::vhost::nginx' do
   context 'nginx-proxy' do
     let(:title) { 'defaultvhost' }
     let(:params) {
-      { :proxy => 'http://127.0.0.1:81', :options => {
-        'ensure'      => 'present',
-        'index_files' => ['index.php'],
-        'server_name' => ['default'],
-        'location_cfg_append' => {
-          'try_files' => ['$uri /index.php$is_args$args']
-        }
-      } }
+      { :proxy => 'http://127.0.0.1:81' }
     }
 
     it { is_expected.to contain_class('lamp::server::nginx') }
     it { is_expected.to contain_nginx__resource__vhost('defaultvhost') }
+
+    it { is_expected.to contain_lamp__vhost__location__nginx('defaultvhost-default').with(
+      'proxy' => 'http://127.0.0.1:81',
+      'vhost' => 'defaultvhost',
+    ) }
 
     # test for nginx conf file contents
     it do
@@ -79,7 +121,6 @@ describe 'lamp::vhost::nginx' do
       # vhost header content
       is_expected.to contain_concat__fragment('defaultvhost-header')
         .with_content(/^\s*listen *\*:80;$/)
-        .with_content(/^\s*index *index.php;$/)
 
       # vhost location resource
       is_expected.to contain_nginx__resource__location('defaultvhost-default').with(
@@ -102,19 +143,17 @@ describe 'lamp::vhost::nginx' do
   context 'nginx-path-with-proxy' do
     let(:title) { 'defaultvhost' }
     let(:params) {
-      { :path => '/var/www', :proxy => 'http://127.0.0.1:81', :proxy_match => '/blog', :options => {
-        'ensure'      => 'present',
-        'index_files' => ['index.php'],
-        'server_name' => ['default'],
-        'www_root'    => '/var/www',
-        'location_cfg_append' => {
-          'try_files' => ['$uri /index.php$is_args$args']
-        }
-      } }
+      { :path => '/var/www', :index => ['index.php'], :proxy => 'http://127.0.0.1:81', :proxy_match => '/blog' }
     }
 
     it { is_expected.to contain_class('lamp::server::nginx') }
     it { is_expected.to contain_nginx__resource__vhost('defaultvhost') }
+
+    it { is_expected.to contain_lamp__vhost__location__nginx('defaultvhost-default').with(
+      'path'  => '/var/www',
+      'proxy' => 'http://127.0.0.1:81',
+      'vhost' => 'defaultvhost',
+    ) }
 
     # test for nginx conf file contents
     it do

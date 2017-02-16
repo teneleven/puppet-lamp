@@ -29,34 +29,21 @@ define lamp::vhost (
   include lamp::params
 
   if ($server == 'nginx') {
-    $try_files = any2array($index).map |$file| {
-      "/${file}\$is_args\$args"
-    }
-
-    $location_cfg = {
-      'try_files' => join(concat(
-        ['$uri'],
-        $try_files
-      ), ' ')
-    }
-
     create_resources('lamp::vhost::nginx', { "${title}" => {
       path        => $path,
       engine      => $engine,
+      index       => any2array($index),
       locations   => $locations,
       proxy       => $proxy,
       proxy_match => $proxy_match,
       site        => $site,
       options     => merge({
-        ensure              => present,
-        index_files         => any2array($index),
-        server_name         => any2array($hosts),
-        www_root            => $path,
-        location_cfg_append => $location_cfg,
-        ssl                 => $ssl,
-        ssl_cert            => $ssl_cert,
-        ssl_key             => $ssl_key,
-        raw_append          => $custom_fragment,
+        ensure               => present,
+        server_name          => any2array($hosts),
+        ssl                  => $ssl,
+        ssl_cert             => $ssl_cert,
+        ssl_key              => $ssl_key,
+        raw_append           => $custom_fragment,
 
         listen_port => $port ? {
           default => $port,

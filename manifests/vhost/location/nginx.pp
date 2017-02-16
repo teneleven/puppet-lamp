@@ -15,16 +15,12 @@ define lamp::vhost::location::nginx (
   $custom_options = {},
 ) {
 
-  /* $real_index = $index ? { */
-  /*   undef   => getparam(Lamp::Vhost[$vhost], 'index'), */
-  /*   default => $index, */
-  /* } */
+  include lamp::server::nginx
 
   if ($proxy and $path) {
-    include lamp::server::nginx
-
     # need a duplicate location, since we're serving files from path
     ::nginx::resource::location { "${title}_proxy":
+      priority => 499, # needs higher priority or our other locations will match first
       location => $proxy_match ? {
         undef   => '/',
         default => $proxy_match,
@@ -33,11 +29,13 @@ define lamp::vhost::location::nginx (
       proxy_set_header => $lamp::server::nginx::proxy_headers,
       vhost            => $vhost,
     }
-  }
 
-  $real_path = $path ? {
-    undef   => getparam(Lamp::Vhost[$vhost], 'path'),
-    default => $path,
+    $proxy_options = {}
+  } elsif ($proxy and $path == undef) {
+    # if we only set $proxy and not $path, we need to pass the $proxy to our
+    # nginx vhost below (otherwise it errors since it needs at least $path *or*
+    # $proxy set)
+    $proxy_options = { 'proxy' => $proxy, 'proxy_set_header' => $lamp::server::nginx::proxy_headers }
   }
 
   if ($index or $script) {
@@ -97,13 +95,16 @@ define lamp::vhost::location::nginx (
       ensure      => present,
       vhost       => $vhost,
       index_files => $index,
-      www_root    => $real_path,
+      www_root    => $path,
       location    => $match ? {
         default   => ($match =~ /^~/) ? {
           true  => $match,
-          false => "~ ${match}"
+          false => "~ ${match}",
         },
-        undef     => "~ ^/${script}(/|\$)"
+        undef     => $script ? {
+          undef   => '/',
+          default => "~ ^/${script}(/|\$)",
+        }
       },
       /* priority        => $priority, */
 
@@ -118,6 +119,7 @@ define lamp::vhost::location::nginx (
 
       raw_prepend          => $custom_raw,
     },
+    $proxy_options,
     $custom_options
   )})
 
