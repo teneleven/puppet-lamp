@@ -84,3 +84,7 @@ This module is far from complete. Pull requests for these features are welcome.
     - [ ] Tomcat and/or Jetty
     - [ ] IIS
  - [ ] **Other scripting languages**: That start with P of course (kidding).
+    - [x] PHP
+    - [x] Node.js
+    - [ ] Ruby
+    - [ ] Python
