@@ -18,16 +18,21 @@ class lamp::nodejs (
   $manage_package_repo = true,
 ) inherits lamp::params {
 
+  include ::nodejs::params
+
   class { '::nodejs':
     manage_package_repo => $manage_package_repo,
     repo_url_suffix     => $version ? {
-      undef   => $::nodejs::repo_url_suffix,
+      undef   => $::nodejs::params::repo_url_suffix,
       default => $version,
     },
     npm_package_ensure  => $npm ? {
       true  => 'present',
       false => 'absent',
     },
+
+    # this is necessary otherwise npm tries to keep removing itself...
+    nodejs_dev_package_name => undef,
   }
 
   if (is_hash($npm_modules)) {
