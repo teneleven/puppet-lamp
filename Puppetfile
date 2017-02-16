@@ -12,6 +12,7 @@ mod 'jfryman-nginx'
 # db
 mod 'puppetlabs-mysql'
 
-# sf stuff
+# scripting
 mod 'puppet-php',
   :git => 'https://github.com/voxpupuli/puppet-php.git'
+mod 'puppet-nodejs'
