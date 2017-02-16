@@ -34,18 +34,6 @@ describe 'lamp' do
     ) }
   end
 
-  context 'nodejs' do
-    let(:params) {
-      {
-        :nodejs => { 'manage_package_repo' => false },
-      }
-    }
-
-    it { is_expected.to contain_class('lamp::nodejs').with(
-      'manage_package_repo' => false,
-    ) }
-  end
-
   context 'default-vhost' do
     let(:params) {
       {

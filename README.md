@@ -83,8 +83,6 @@ This module is far from complete. Pull requests for these features are welcome.
     - [ ] lighttpd
     - [ ] Tomcat and/or Jetty
     - [ ] IIS
- - [ ] **Other scripting languages**: That start with P of course (kidding).
-    - [x] PHP
-    - [x] Node.js
-    - [ ] Ruby
-    - [ ] Python
+ - [ ] **Other scripting engines**: We should be able to set "engine =>
+   fastcgi" on a vhost (or something similar) and be able to work with
+   *any* scripting language (independent of this library).

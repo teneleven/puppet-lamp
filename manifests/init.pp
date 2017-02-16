@@ -2,9 +2,8 @@ class lamp (
   $vhosts = {},
   $db     = {},
 
-  /* set these to hash or truthy to install */
+  /* set to hash or truthy to install */
   $php    = undef,
-  $nodejs = undef,
 ) inherits lamp::params {
 
   /* ensure web user/group are properly setup */
@@ -84,10 +83,6 @@ class lamp (
 
   if ($php) {
     create_resources('class', { 'lamp::php' => $php })
-  }
-
-  if ($nodejs) {
-    create_resources('class', { 'lamp::nodejs' => $nodejs })
   }
 
   /* if ($db) { */
