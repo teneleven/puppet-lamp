@@ -186,7 +186,7 @@ describe 'lamp::vhost::nginx' do
         .with_content(/^\s*try_files \$uri \/index.php\$is_args\$args;$/)
 
       # vhost proxy location content
-      is_expected.to contain_concat__fragment('defaultvhost-499-c061e150208a7ab43c1b0b723b79816b')
+      is_expected.to contain_concat__fragment('defaultvhost-500-c061e150208a7ab43c1b0b723b79816b')
         .with_content(/^\s*location *\/blog {$/)
         .with_content(/^\s*proxy_pass *http:\/\/127.0.0.1:81;$/)
         .with_content(/^\s*proxy_set_header *Host \$host;$/)

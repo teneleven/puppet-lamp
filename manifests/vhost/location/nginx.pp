@@ -1,8 +1,9 @@
 define lamp::vhost::location::nginx (
-  $path   = undef,
-  $vhost  = undef,
-  $engine = undef,
-  $index  = undef,
+  $path     = undef,
+  $vhost    = undef,
+  $engine   = undef,
+  $index    = undef,
+  $priority = 500,
 
   /* proxy requests to this proxy */
   $proxy  = undef,
@@ -23,7 +24,6 @@ define lamp::vhost::location::nginx (
   if ($proxy and $path) {
     # need a duplicate location, since we're serving files from path
     ::nginx::resource::location { "${title}_proxy":
-      priority => 499, # needs higher priority or our other locations will match first
       location => $proxy_match ? {
         undef   => '/',
         default => $proxy_match,
@@ -31,6 +31,7 @@ define lamp::vhost::location::nginx (
       proxy            => $proxy,
       proxy_set_header => $lamp::server::nginx::proxy_headers,
       vhost            => $vhost,
+      priority         => $priority,
     }
 
     $proxy_options = {}
@@ -96,15 +97,15 @@ define lamp::vhost::location::nginx (
       www_root    => $path,
       location    => $match ? {
         default   => ($match =~ /^~/) ? {
-          true  => $match,
-          false => "~ ${match}",
+          true    => $match,
+          false   => "~ ${match}",
         },
         undef     => $script ? {
           undef   => '/',
           default => "~ ^/${script}(/|\$)",
         }
       },
-      /* priority        => $priority, */
+      priority    => $priority,
 
       fastcgi       => $fastcgi,
       fastcgi_param => $fastcgi_param,
