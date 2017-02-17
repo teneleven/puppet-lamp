@@ -12,6 +12,9 @@ define lamp::vhost::location::nginx (
   $script = undef, /* script to forward all requests to */
   $listen = undef, /* fcgi listen address */
 
+  $fcgi_config = {},
+  $fcgi_raw    = undef,
+
   $custom_options = {},
 ) {
 
@@ -55,19 +58,14 @@ define lamp::vhost::location::nginx (
     $location_cfg = undef
   }
 
-  if ($engine == 'php') {
-    $custom_cfg = {
-      'fastcgi_split_path_info' => '^(.*\.php)(.*)$',
+  if ($engine == 'fcgi') {
+    $custom_cfg = merge($fcgi_config, {
       /* fixes nginx path_info bug: https://forum.nginx.org/read.php?2,238825,238860 */
       'fastcgi_param PATH_INFO' => '$path_info',
       'set $path_info' => '$fastcgi_path_info',
-    }
-
-    /* don't allow access if file doesn't exist */
-    $custom_raw = 'if (!-f $document_root$fastcgi_script_name) { return 404; }'
+    })
   } else {
     $custom_cfg = {}
-    $custom_raw = undef
   }
 
   if ($engine or $script) {
@@ -117,7 +115,7 @@ define lamp::vhost::location::nginx (
       }, $custom_cfg),
       location_cfg_append  => $location_cfg,
 
-      raw_prepend          => $custom_raw,
+      raw_prepend          => $fcgi_raw,
     },
     $proxy_options,
     $custom_options

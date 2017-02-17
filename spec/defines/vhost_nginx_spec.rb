@@ -97,6 +97,23 @@ describe 'lamp::vhost::nginx' do
     end
   end
 
+  context 'fcgi engine' do
+    let(:title) { 'defaultvhost' }
+    let(:params) {
+      { :path => '/var/www', :engine => 'fcgi', :options => {
+        'server_name' => ['default', 'default-alias'],
+      } }
+    }
+
+    # test for nginx conf file contents
+    it do
+      # vhost location content
+      is_expected.to contain_concat__fragment('defaultvhost-500-6666cd76f96956469e7be39d750cc7d9')
+        .with_content(/^\s*fastcgi_pass *127.0.0.1:9000;$/)
+        .with_content(/^\s*fastcgi_param *SCRIPT_FILENAME \/\$document_root\/\$fastcgi_script_name;$/)
+    end
+  end
+
   # test nginx conf file for reverse-proxy
   context 'nginx-proxy' do
     let(:title) { 'defaultvhost' }
