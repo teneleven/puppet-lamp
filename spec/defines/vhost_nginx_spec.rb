@@ -115,7 +115,7 @@ describe 'lamp::vhost::nginx' do
   end
 
   # test nginx conf file for reverse-proxy
-  context 'nginx-proxy' do
+  context 'reverse proxy' do
     let(:title) { 'defaultvhost' }
     let(:params) {
       { :proxy => 'http://127.0.0.1:81' }
@@ -157,7 +157,7 @@ describe 'lamp::vhost::nginx' do
   # This tests configuring an nginx vhost with a path & a proxy. All requests
   # not matching "proxy_match" should be served from vhost, matching requests
   # should be served from proxy.
-  context 'nginx-path-with-proxy' do
+  context 'reverse proxy w/ www root' do
     let(:title) { 'defaultvhost' }
     let(:params) {
       { :path => '/var/www', :index => ['index.php'], :proxy => 'http://127.0.0.1:81', :proxy_match => '/blog' }
@@ -191,6 +191,55 @@ describe 'lamp::vhost::nginx' do
         .with_content(/^\s*proxy_pass *http:\/\/127.0.0.1:81;$/)
         .with_content(/^\s*proxy_set_header *Host \$host;$/)
         .with_content(/^\s*proxy_set_header *X-Forwarded-For \$remote_addr;$/)
+    end
+  end
+
+  context 'location with script' do
+    let(:title) { 'defaultvhost' }
+    let(:params) {
+      {
+        :path => '/var/www',
+        :index => ['app.php'],
+        :engine => 'php',
+        :locations => { 'assets' => {
+          'script' => 'app.php',
+          'match'  => '/assets',
+        } },
+        :options => { 'server_name' => ['default', 'default-alias'] },
+      }
+    }
+
+    it { is_expected.to contain_class('lamp::server::nginx') }
+    it { is_expected.to contain_nginx__resource__vhost('defaultvhost') }
+
+    it { is_expected.to contain_lamp__vhost__location__nginx('defaultvhost-default').with(
+      'path'  => '/var/www',
+      'vhost' => 'defaultvhost',
+      'index' => ['app.php'],
+    ) }
+
+    # test for nginx conf file contents
+    it do
+      # ensures site is available & enabled
+      is_expected.to contain_concat('/etc/nginx/sites-available/defaultvhost.conf')
+      is_expected.to contain_file('defaultvhost.conf symlink')
+
+      # vhost header content
+      is_expected.to contain_concat__fragment('defaultvhost-header')
+        .with_content(/^\s*listen *\*:80;$/)
+        .with_content(/^\s*index *app.php;$/)
+        .with_content(/^\s*server_name *default default-alias;$/)
+
+      # vhost / location content
+      is_expected.to contain_concat__fragment('defaultvhost-500-6666cd76f96956469e7be39d750cc7d9')
+        .with_content(/^\s*root *\/var\/www;$/)
+        .with_content(/^\s*index *app.php;$/)
+        .with_content(/^\s*try_files \$uri \/app\.php\$is_args\$args;$/)
+
+      # vhost /assets location content
+      is_expected.to contain_concat__fragment('defaultvhost-500-f9bcd59609c43b74b9ace2c71e6c3a6e')
+        .with_content(/^\s*fastcgi_param SCRIPT_FILENAME \/\$document_root\/app\.php;$/)
+        .with_content(/^\s*try_files \$uri \/app.php\$is_args\$args;$/)
     end
   end
 end

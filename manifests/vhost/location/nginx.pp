@@ -100,10 +100,7 @@ define lamp::vhost::location::nginx (
           true    => $match,
           false   => "~ ${match}",
         },
-        undef     => $script ? {
-          undef   => '/',
-          default => "~ ^/${script}(/|\$)",
-        }
+        undef     => '/',
       },
       priority    => $priority,
 
