@@ -26,8 +26,6 @@ define lamp::vhost::nginx (
   })
 
   if ($path and $engine == 'php') {
-    notice("creating php engine for ${title}")
-
     /* handle *.php files */
     lamp::vhost::location::nginx { "${title}_php":
       path   => $path,
