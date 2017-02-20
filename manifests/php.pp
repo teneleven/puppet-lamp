@@ -33,8 +33,6 @@ class lamp::php (
   }
 ) inherits lamp::params {
 
-  Class['Apt::Update'] -> Class['Php']
-
   class { '::php':
     ensure   => $version,
     settings => $dev ? {
