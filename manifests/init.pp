@@ -6,7 +6,7 @@ class lamp (
   $php    = undef,
 ) inherits lamp::params {
 
-  /* ensure web user/group are properly setup */
+  # ensure web user/group are properly setup
   ensure_resource('group', $web_group, {
     ensure => present,
     gid    => $web_gid
@@ -16,6 +16,9 @@ class lamp (
     gid    => $web_gid,
     uid    => $web_uid
   })
+
+  # ensure www-data is setup before vhosts
+  Group[$web_group] -> User[$web_user] -> Lamp::Vhost <| |>
 
   $vhost_servers = $vhosts.map |$key,$vhost| {
     if ('server' in $vhost and $vhost['server'] != undef) {
@@ -83,6 +86,7 @@ class lamp (
 
   if ($php) {
     create_resources('class', { 'lamp::php' => $php })
+    contain 'lamp::php'
   }
 
   /* if ($db) { */

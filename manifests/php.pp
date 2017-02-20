@@ -33,6 +33,8 @@ class lamp::php (
   }
 ) inherits lamp::params {
 
+  Class['Apt::Update'] -> Class['Php']
+
   class { '::php':
     ensure   => $version,
     settings => $dev ? {
@@ -40,6 +42,8 @@ class lamp::php (
       false => $ini
     }
   }
+
+  contain ::php
 
   if ($composer) {
     contain ::php::composer

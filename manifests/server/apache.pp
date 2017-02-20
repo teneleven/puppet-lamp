@@ -6,4 +6,6 @@ class lamp::server::apache inherits lamp::params {
     default_vhost => false,
   }
 
+  contain ::apache
+
 }
