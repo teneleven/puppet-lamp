@@ -9,7 +9,10 @@ class lamp::params (
 
   $default_vhost_server = 'apache',
   $default_vhost_engine = 'php',
+
+  # mysql db defaults
   $default_db_server    = 'mysql',
+  $default_db_host      = 'localhost',
   $db_root_password     = '123',
 
   /* if we use multiple vhost servers in 1 entry, we'll default to           */

@@ -40,10 +40,14 @@ define lamp::db (
         {
           'dbname' => $database,
           'user'   => $username,
-          'host'   => 'localhost',
+          'host'   => $lamp::params::default_db_host,
           'grant'  => ['ALL'],
         },
-        $user
+        $user,
+        {
+          # generate password using native hashing algorithm
+          'password' => mysql_server_password($user['password'])
+        }
       )})
     }
 
