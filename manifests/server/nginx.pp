@@ -13,4 +13,7 @@ class lamp::server::nginx (
 
   contain ::nginx
 
+  # ensure sites-available is created before vhost symlink
+  File['/etc/nginx/sites-available'] -> Nginx::Resource::Vhost <| |>
+
 }
