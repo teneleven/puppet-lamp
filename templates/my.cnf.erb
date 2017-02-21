@@ -1,0 +1,5 @@
+[client]
+user=root
+<%- if scope['lamp::params::db_root_password'] -%>
+password=<%= scope['lamp::params::db_root_password'] %>
+<%- end -%>

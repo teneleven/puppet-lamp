@@ -3,9 +3,11 @@ require 'spec_helper'
 describe 'lamp' do
   let(:facts) {
     {
-      :osfamily               => 'Debian',
-      :operatingsystem        => 'Ubuntu',
-      :operatingsystemrelease => '16.04'
+      :osfamily                  => 'Debian',
+      :operatingsystem           => 'Ubuntu',
+      :operatingsystemrelease    => '16.04',
+      :operatingsystemmajrelease => '16.04',
+      :puppetversion             => '4.0',
     }
   }
 
@@ -14,7 +16,7 @@ describe 'lamp' do
       {
         :vhosts => {},
         :php    => {},
-        :db     => {},
+        :dbs    => {},
       }
     }
 
@@ -156,5 +158,59 @@ describe 'lamp' do
     ) }
   end
 
-  # TODO db
+  context 'simple mysql db' do
+    let(:params) {
+      {
+        :dbs => { 'test' => '123' }
+      }
+    }
+
+    it { is_expected.to contain_lamp__db('test').with(
+      'users' => { 'test' => { 'password' => '123' } }
+    ) }
+
+    it { is_expected.to contain_mysql__db('test_test').with(
+      'dbname'   => 'test',
+      'user'     => 'test',
+      'host'     => 'localhost',
+      'grant'    => ['ALL'],
+      'password' => '123',
+    ) }
+  end
+
+  context 'mysql db' do
+    let(:params) {
+      {
+        :dbs => {
+          'test' => {
+            'server' => 'mysql',
+            'users' => {
+              'test_user'  => '123',
+              'test_user2' => { 'password' => '234', 'host' => '127.0.0.1' }
+            }
+          }
+        }
+      }
+    }
+
+    it { is_expected.to contain_lamp__db('test').with(
+      'users' => { 'test_user' => '123', 'test_user2' => { 'password' => '234', 'host' => '127.0.0.1' } }
+    ) }
+
+    it { is_expected.to contain_mysql__db('test_test_user').with(
+      'dbname'   => 'test',
+      'user'     => 'test_user',
+      'host'     => 'localhost',
+      'grant'    => ['ALL'],
+      'password' => '123',
+    ) }
+    it { is_expected.to contain_mysql__db('test_test_user2').with(
+      'dbname'   => 'test',
+      'user'     => 'test_user2',
+      'host'     => '127.0.0.1',
+      'grant'    => ['ALL'],
+      'password' => '234',
+    ) }
+  end
+
 end

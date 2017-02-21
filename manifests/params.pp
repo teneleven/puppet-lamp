@@ -9,6 +9,8 @@ class lamp::params (
 
   $default_vhost_server = 'apache',
   $default_vhost_engine = 'php',
+  $default_db_server    = 'mysql',
+  $db_root_password     = '123',
 
   /* if we use multiple vhost servers in 1 entry, we'll default to           */
   /* using the following server for the reverse-proxy (listening at port 80) */

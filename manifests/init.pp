@@ -1,6 +1,6 @@
 class lamp (
   $vhosts = {},
-  $db     = {},
+  $dbs    = {},
 
   /* set to hash or truthy to install */
   $php    = undef,
@@ -89,7 +89,19 @@ class lamp (
     contain 'lamp::php'
   }
 
-  /* if ($db) { */
-  /* } */
+  if ($dbs) {
+    $dbs.each |$database,$val| {
+      if (is_hash($val)) {
+        create_resources('lamp::db', { $database => $val })
+      } else {
+        create_resources('lamp::db', { $database => {
+          'users' => {
+            $database => { 'password' => $val }
+          }
+        } })
+      }
+
+    }
+  }
 
 }
