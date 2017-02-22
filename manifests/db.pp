@@ -5,6 +5,7 @@
 define lamp::db (
   $database = $title,
   $users    = {},
+  $sql      = undef,
   $server   = undef,
 ) {
 
@@ -34,7 +35,10 @@ define lamp::db (
         $user = { 'password' => $val }
       }
 
-      File['/root/.my.cnf'] -> ::Mysql::Db["${database}_${username}"] -> Exec['rm my.cnf']
+      # setup dependencies
+      File['/root/.my.cnf']
+        -> ::Mysql::Db["${database}_${username}"]
+        -> Exec['rm my.cnf']
 
       create_resources('::mysql::db', { "${database}_${username}" => merge(
         {
@@ -42,6 +46,7 @@ define lamp::db (
           'user'   => $username,
           'host'   => $lamp::params::default_db_host,
           'grant'  => ['ALL'],
+          'sql'    => $sql,
         },
         $user,
         {
