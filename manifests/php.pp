@@ -44,7 +44,7 @@ class lamp::php (
       } elsif $k =~ 'xdebug.' {
         ["xdebug/$k", $v]
       } else {
-        ["Php/$k", $v]
+        ["PHP/$k", $v]
       }
     }
   }))
