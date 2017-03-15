@@ -33,11 +33,27 @@ class lamp::php (
   }
 ) inherits lamp::params {
 
+  # prefix our PHP.ini settings with the section
+  $real_ini = hash(flatten($ini.map |$k, $v| {
+    if $k =~ '/' {
+      [$k, $v]
+    } else {
+      # attempt to guess the section
+      if $k =~ 'date.' {
+        ["Date/$k", $v]
+      } elsif $k =~ 'xdebug.' {
+        ["xdebug/$k", $v]
+      } else {
+        ["Php/$k", $v]
+      }
+    }
+  }))
+
   class { '::php':
     ensure   => $version,
     settings => $dev ? {
-      true  => merge($dev_settings, $ini),
-      false => $ini
+      true  => merge($dev_settings, $real_ini),
+      false => $real_ini
     }
   }
 
