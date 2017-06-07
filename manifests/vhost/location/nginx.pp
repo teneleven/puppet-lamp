@@ -44,16 +44,26 @@ define lamp::vhost::location::nginx (
 
   if ($index or $script or $engine == 'fcgi') {
     if ($script) {
-      $try = $script
+      $try = [$script, $index ? {
+        undef   => '=404',
+        default => $index
+      }]
     } elsif ($index) {
-      $try = ['$uri', "/${index}"]
+      $try = ['$uri', $index]
     } elsif ($engine == 'fcgi') {
       $try = '$fastcgi_script_name'
     }
 
     $location_cfg = {
       'try_files' => join(
-        any2array($try).map |$file| { "${file}\$is_args\$args" }
+        any2array($try).map |$file| {
+          $file_path = ($file =~ /^(\$|\/)/) ? {
+            true  => $file,
+            false => "/${file}"
+          }
+
+          "${file_path}\$is_args\$args"
+        }
       , ' ')
     }
   } else {
