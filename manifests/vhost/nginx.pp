@@ -30,7 +30,6 @@ define lamp::vhost::nginx (
     lamp::vhost::location::nginx { "${title}_php":
       path   => $path,
       vhost  => $site,
-      index  => $index,
       engine => 'fcgi',
       match  => '[^/]\.php(/|$)',
       fcgi_config => { 'fastcgi_split_path_info' => '^(.*\.php)(.*)$' },

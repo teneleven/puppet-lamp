@@ -42,18 +42,19 @@ define lamp::vhost::location::nginx (
     $proxy_options = { 'proxy' => $proxy, 'proxy_set_header' => $lamp::server::nginx::proxy_headers }
   }
 
-  if ($index or $script) {
+  if ($index or $script or $engine == 'fcgi') {
     if ($script) {
       $try = $script
-    } else {
-      $try = $index
+    } elsif ($index) {
+      $try = ['$uri', "/${index}"]
+    } elsif ($engine == 'fcgi') {
+      $try = '$fastcgi_script_name'
     }
 
     $location_cfg = {
-      'try_files' => join(concat(
-        ['$uri'],
-        any2array($try).map |$file| { "/${file}\$is_args\$args" }
-      ), ' ')
+      'try_files' => join(
+        any2array($try).map |$file| { "${file}\$is_args\$args" }
+      , ' ')
     }
   } else {
     $location_cfg = undef
@@ -66,7 +67,7 @@ define lamp::vhost::location::nginx (
       'set $path_info' => '$fastcgi_path_info',
     })
   } else {
-    $custom_cfg = {}
+    $custom_cfg = $fcgi_config
   }
 
   if ($engine or $script) {
@@ -79,9 +80,9 @@ define lamp::vhost::location::nginx (
       'SCRIPT_FILENAME' => $script ? {
         default => ($script =~ /^\//) ? {
           true  => $script,
-          false => "/\$document_root/${script}",
+          false => "\$document_root${script}",
         },
-        undef   => '/$document_root/$fastcgi_script_name',
+        undef   => '$document_root$fastcgi_script_name',
       }
     }
   } else {
