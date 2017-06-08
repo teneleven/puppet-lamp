@@ -44,26 +44,28 @@ define lamp::vhost::location::nginx (
 
   if ($index or $script or $engine == 'fcgi') {
     if ($script) {
-      $try = [$script, $index ? {
-        undef   => '=404',
-        default => $index
-      }]
-    } elsif ($index) {
-      $try = ['$uri', $index]
+      $try = any2array($script)
     } elsif ($engine == 'fcgi') {
-      $try = '$fastcgi_script_name'
+      $try = ['$fastcgi_script_name']
+    } elsif ($index) {
+      $try = concat(['$uri'], any2array($index))
+    }
+
+    if (size($try) == 1) {
+      $last_try = '=404'
+    } else {
+      $last_try = undef
     }
 
     $location_cfg = {
       'try_files' => join(
-        any2array($try).map |$file| {
-          $file_path = ($file =~ /^(\$|\/)/) ? {
-            true  => $file,
-            false => "/${file}"
+        concat($try.map |$file| {
+          $file ? {
+            /^(\$|\=)/ => $file,
+            /^\//      => "${file}\$is_args\$args",
+            default    => "/${file}\$is_args\$args",
           }
-
-          "${file_path}\$is_args\$args"
-        }
+        }, $last_try)
       , ' ')
     }
   } else {
@@ -88,9 +90,9 @@ define lamp::vhost::location::nginx (
 
     $fastcgi_param = {
       'SCRIPT_FILENAME' => $script ? {
-        default => ($script =~ /^\//) ? {
-          true  => $script,
-          false => "\$document_root${script}",
+        default => ($script =~ /^(\$|\/)/) ? {
+          true  => "\$document_root$script",
+          false => "\$document_root/${script}"
         },
         undef   => '$document_root$fastcgi_script_name',
       }
