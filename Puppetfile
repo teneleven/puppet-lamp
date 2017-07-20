@@ -9,7 +9,8 @@ mod 'archive',
 
 # web
 mod 'puppetlabs-apache'
-mod 'jfryman-nginx'
+mod 'nginx',
+  :git => 'https://github.com/voxpupuli/puppet-nginx'
 
 # db
 mod 'puppetlabs-mysql'
