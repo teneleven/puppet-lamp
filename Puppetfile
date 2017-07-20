@@ -4,6 +4,8 @@ forge "https://forgeapi.puppetlabs.com"
 
 # server requirements
 mod 'puppetlabs-stdlib'
+mod 'archive',
+  :git => 'https://github.com/voxpupuli/puppet-archive'
 
 # web
 mod 'puppetlabs-apache'
@@ -13,6 +15,7 @@ mod 'jfryman-nginx'
 mod 'puppetlabs-mysql'
 
 # scripting
-mod 'puppet-php',
-  :git => 'https://github.com/voxpupuli/puppet-php.git'
+mod 'php',
+  :git => 'https://github.com/craigwatson/puppet-php.git',
+  :ref => 'craig/ubuntu_repo_fix'
 mod 'puppet-nodejs'
