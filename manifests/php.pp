@@ -49,12 +49,15 @@ class lamp::php (
     }
   }))
 
+  if ($dev) {
+    $real_settings = merge($dev_settings, $real_ini)
+  } else {
+    $real_settings = $real_ini
+  }
+
   class { '::php':
     ensure   => $version,
-    settings => $dev ? {
-      true  => merge($dev_settings, $real_ini),
-      false => $real_ini
-    }
+    settings => $real_settings
   }
 
   contain ::php
