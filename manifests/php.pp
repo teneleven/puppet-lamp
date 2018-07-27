@@ -23,6 +23,8 @@ class lamp::php (
   /* PHP.ini config */
   $ini        = {},
 
+  $enable_xdebug = false,
+
   /* use $dev_settings when $lamp::params::dev is true */
   $dev_settings = {
     'PHP/display_errors' => 'On',
@@ -63,7 +65,7 @@ class lamp::php (
     contain ::php::composer
   }
 
-  if (any2bool($dev)) {
+  if (any2bool($enable_xdebug)) {
     ::php::extension { 'xdebug': }
   }
 
