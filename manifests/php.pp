@@ -49,15 +49,12 @@ class lamp::php (
     }
   }))
 
-  if ($dev) {
-    $real_settings = merge($dev_settings, $real_ini)
-  } else {
-    $real_settings = $real_ini
-  }
-
   class { '::php':
     ensure   => $version,
-    settings => $real_settings
+    settings => any2bool($dev) ? {
+      true  => merge($dev_settings, $real_ini),
+      false => $real_ini
+    }
   }
 
   contain ::php
@@ -66,7 +63,7 @@ class lamp::php (
     contain ::php::composer
   }
 
-  if ($dev) {
+  if (any2bool($dev)) {
     ::php::extension { 'xdebug': }
   }
 
