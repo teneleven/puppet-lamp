@@ -23,7 +23,7 @@ class lamp::php (
   /* PHP.ini config */
   $ini        = {},
 
-  $enable_xdebug = false,
+  $enable_xdebug = "%{::dev}",
 
   /* use $dev_settings when $lamp::params::dev is true */
   $dev_settings = {
