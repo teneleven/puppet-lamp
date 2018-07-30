@@ -21,18 +21,7 @@ class lamp::php (
   $extensions = {},
 
   /* PHP.ini config */
-  $ini        = {},
-
-  $enable_xdebug = "${::dev}",
-
-  /* use $dev_settings when $lamp::params::dev is true */
-  $dev_settings = {
-    'PHP/display_errors' => 'On',
-    'opcache/opcache.enable' => '0',
-    'xdebug/xdebug.remote_enable' => '1',
-    'xdebug/xdebug.remote_connect_back' => '1',
-    'xdebug/xdebug.max_nesting_level' => '10000'
-  }
+  $ini        = {}
 ) inherits lamp::params {
 
   # prefix our PHP.ini settings with the section
@@ -53,20 +42,13 @@ class lamp::php (
 
   class { '::php':
     ensure   => $version,
-    settings => any2bool($dev) ? {
-      true  => merge($dev_settings, $real_ini),
-      false => $real_ini
-    }
+    settings => $real_ini
   }
 
   contain ::php
 
   if ($composer) {
     contain ::php::composer
-  }
-
-  if (any2bool($enable_xdebug)) {
-    ::php::extension { 'xdebug': }
   }
 
   if (is_hash($extensions)) {
