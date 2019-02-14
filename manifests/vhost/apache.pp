@@ -37,7 +37,8 @@ define lamp::vhost::apache (
     contain apache::mod::proxy
     contain apache::mod::proxy_fcgi
 
-    $engine_match = '\\.php(/.*)?$'
+    $engine_match = '\\.php$'
+    $engine_handler = 'proxy:fcgi://localhost:9000'
   } else {
     $engine_match = undef
   }

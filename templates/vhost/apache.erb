@@ -1,5 +1,7 @@
-<%- if @engine_match and @engine_listen -%>
-    ProxyPassMatch "<%= @engine_match %>" "<%= @engine_listen %>"
+<%- if @engine_match and @engine_handler -%>
+    <FilesMatch <%= @engine_match %>>
+        SetHandler <%= @engine_handler %>
+    </FilesMatch>
 <%- end -%>
 
 <%- if @proxy and @proxy_match -%>
